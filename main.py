@@ -606,7 +606,7 @@ class UpdateWindow(QWidget):
 
 if __name__ == "__main__":
     if windll.shell32.IsUserAnAdmin():  # 是否以管理员身份运行
-        print("管理员")
+        print("Admin")
         app = QApplication([])
         main_win_ui = MainWindow()
         main_win_ui.show()
