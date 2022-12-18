@@ -10,20 +10,21 @@ from pathlib import Path
 
 import pyautogui
 
-from package.xuanshangfengyin import XuanShangFengYin
+from package.xuanshangfengyin import xuanshangfengyin
 
-from . import window
+# from . import window
+from .config import config
 from .log import log
+from .window import window
 
 
 class Function:
     """通用函数"""
 
-    """ 
-    def __init__(self):
-        self.window_width_screenshot = 1138  # 截图宽度
-        self.window_height_screenshot = 679  # 截图高度
-    """
+    def __init__(self) -> None:
+        self.resource_path: Path = config.resource_path  # 资源路径
+        self.screenshot_window_width: int = 1138  # 截图宽度
+        self.screenshot_window_height: int = 679  # 截图高度
 
     def random_num(self, minimum: int, maximun: int) -> int:
         """返回给定范围的随机值
@@ -56,44 +57,59 @@ class Function:
         y = self.random_num(y1, y2)
         return x, y
 
-    def get_coor_info_picture(self, pic: str) -> tuple[int, int]:
+    def get_coor_info_picture(self, file: str) -> tuple[int, int]:
         """图像识别，返回图像的全屏随机坐标
 
         Args:
-            pic (str): 文件路径&图像名称(*.png)
+            file (str): 文件路径&图像名称(*.png)
 
         Returns:
             tuple[int, int]: 识别成功，返回图像的随机坐标；识别失败，返回(0,0)
         """
-        filename: str = fr'./pic/{pic}'
-        # print("test", XuanShangFengYin().event_is_set())
+        # TODO 兼容Pathlib
+        # filename: str = fr'./pic/{file}'
+        filename = self.resource_path / file
+        log.info(filename)
+        if isinstance(filename, Path):
+            filename = str(filename)
+        # print("test", xuanshangfengyin.event_is_set())
         # 等待悬赏封印判定
-        XuanShangFengYin().event_wait()
+        xuanshangfengyin.event_wait()
         try:
-            button_location = pyautogui.locateOnScreen(filename, region=(
-                window.window_left, window.window_top, window.absolute_window_width, window.absolute_window_height),
-                confidence=0.8)
+            button_location = pyautogui.locateOnScreen(
+                filename, region=(
+                    window.window_left,
+                    window.window_top,
+                    window.absolute_window_width,
+                    window.absolute_window_height
+                ),
+                confidence=0.8
+            )
             log.info(f"button_location:{button_location}")
-            x, y = self.random_coor(button_location[0], button_location[0] + button_location[2], button_location[1],
-                                    button_location[1] + button_location[3])
+            x, y = self.random_coor(
+                button_location[0],
+                button_location[0] + button_location[2],
+                button_location[1],
+                button_location[1] + button_location[3]
+            )
         except:
             x = y = 0
         finally:
             log.info(f"random_coor_x_y:{x},{y}")
             return x, y
 
-    def judge_scene(self, pic: str, scene_name: str = None) -> bool:
+    def judge_scene(self, file: str, scene_name: str = None) -> bool:
         """场景判断
 
         Args:
-            pic (str): 文件路径&图像名称(*.png)
+            file (str): 文件路径&图像名称(*.png)
             scene_name (str, optional): 场景描述. Defaults to None.
 
         Returns:
             bool: 是否为指定场景
         """
         while True:
-            x, y = self.get_coor_info_picture(pic)
+            x, y = self.get_coor_info_picture(file)
             if x != 0 and y != 0:
                 if scene_name is not None:
                     log.scene(scene_name)
@@ -101,29 +117,60 @@ class Function:
             else:
                 return False
 
-    def judge_click(self, pic: str, click: bool = True, dura: float = 0.5, sleeptime: float = 0.0) -> None:
+    # TODO
+    def judge_scene_multiple(self, scene: dict, resource_path: str = None) -> str:
+        """多场景判断"""
+        # scene = {
+        #     "tansuo_28_title.png": "少女与面具",
+        #     "chuzhanxiaohao.png": "出战消耗"
+        # }
+        for item in scene.keys():
+            if resource_path is not None:
+                file = f"{self.resource_path}/{item}"
+            else:
+                file = item
+            x, y = self.get_coor_info_picture(file)
+            if x != 0 and y != 0:
+                return scene[item]
+
+    def judge_click(
+        self,
+        file: str,
+        click: bool = True,
+        dura: float = 0.5,
+        sleeptime: float = 0.0
+    ) -> None:
         """图像识别，并点击
 
         Args:
-            pic (str): 文件路径&图像名称(*.png)
+            file (str): 文件路径&图像名称(*.png)
             click (bool, optional): 是否点击. Defaults to True.
             dura (float, optional): 移动速度. Defaults to 0.5.
             sleeptime (float, optional): 延迟时间. Defaults to 0.0.
         """
+        # TODO use "identify" to replace "judge" in function name
         flag = False
         while True:
-            x, y = self.get_coor_info_picture(pic)
+            x, y = self.get_coor_info_picture(file)
             if x != 0 and y != 0:
                 if click:
                     # 延迟
                     if sleeptime is not None:
                         time.sleep(sleeptime)
                     # 补间移动，默认启用
-                    list_tween = [pyautogui.easeInQuad,
-                                  pyautogui.easeOutQuad, pyautogui.easeInOutQuad]
+                    list_tween = [
+                        pyautogui.easeInQuad,
+                        pyautogui.easeOutQuad,
+                        pyautogui.easeInOutQuad
+                    ]
+                    # XXX random for list
                     random.seed(time.time_ns())
-                    pyautogui.moveTo(x, y, duration=dura,
-                                     tween=list_tween[random.randint(0, 2)])
+                    pyautogui.moveTo(
+                        x,
+                        y,
+                        duration=dura,
+                        tween=list_tween[random.randint(0, 2)]
+                    )
                     log.info(f"x,y:{x},{y}")
                     pyautogui.click()
                 log.info("move to right coor successfully")
@@ -154,6 +201,10 @@ class Function:
             x, y = self.get_coor_info_picture("victory.png")
             if x != 0 and y != 0:
                 log.info("胜利", True)
+                return True
+            x, y = self.get_coor_info_picture("yuhun/victory_2000.png")
+            if x != 0 and y != 0:
+                log.ui("胜利，2000天御魂背景")
                 return True
             x, y = self.get_coor_info_picture("fail.png")
             if x != 0 and y != 0:
@@ -191,13 +242,24 @@ class Function:
         random.seed(time.time_ns())
         if random.random() * 10 > 5:
             x, y = self.random_coor(
-                finish_left_x1, finish_left_x2, finish_y1, finish_y2)
+                finish_left_x1,
+                finish_left_x2,
+                finish_y1,
+                finish_y2
+            )
         else:
             x, y = self.random_coor(
-                finish_right_x1, finish_right_x2, finish_y1, finish_y2)
+                finish_right_x1,
+                finish_right_x2,
+                finish_y1,
+                finish_y2
+            )
         if click:
-            pyautogui.moveTo(x + window.window_left, y + window.window_top,
-                             duration=0.5)
+            pyautogui.moveTo(
+                x + window.window_left,
+                y + window.window_top,
+                duration=0.5
+            )
             pyautogui.click()
         return x, y
 
@@ -214,9 +276,16 @@ class Function:
         filepath = fpath / screenshotpath
         if not filepath.exists():
             filepath.mkdir()
-        picname = f"{screenshotpath}./screenshot-{time.strftime('%Y%m%d%H%M%S')}.png"
-        pyautogui.screenshot(imageFilename=picname, region=(
-            window.window_left - 1, window.window_top, window_width_screenshot, window_height_screenshot))
+        file = f"{screenshotpath}./screenshot-{time.strftime('%Y%m%d%H%M%S')}.png"
+        pyautogui.screenshot(
+            imageFilename=file,
+            region=(
+                window.window_left - 1,
+                window.window_top,
+                window_width_screenshot,
+                window_height_screenshot
+            )
+        )
 
     class TimeProgram:
         """程序耗时统计"""
@@ -229,7 +298,7 @@ class Function:
 
         def print(self) -> str:
             try:
-                if (self._time_program_end - self._time_program_start) >= 60:
+                if self._time_program_end - self._time_program_start >= 60:
                     return f"耗时{int((self._time_program_end - self._time_program_start) // 60)}分{int((self._time_program_end - self._time_program_start) % 60)}秒"
                 else:
                     return f"耗时{int(self._time_program_end - self._time_program_start)}秒"
@@ -249,3 +318,6 @@ class Function:
             self.result()
             x, y = self.random_finish_left_right()
     '''
+
+
+function = Function()
