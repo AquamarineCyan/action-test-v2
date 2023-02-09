@@ -2,8 +2,6 @@ name: Test Coverage
 
 on:
   push:
-    branches:
-      - "1.7"
 
 jobs:
   test:
@@ -41,5 +39,8 @@ jobs:
         run: poetry install
         shell: bash
 
-      - name: Run main.py
-        run: poetry run python main.py
+#      - name: Run main.py
+#        run: poetry run python main.py
+      
+      - name: Poetry Version
+        run: poetry --version
