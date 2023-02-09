@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # update.py
 """
 更新日志
@@ -6,7 +7,7 @@
 from utils.mysignal import global_ms as ms
 
 
-def update_record():
+def update_record() -> None:
     """更新日志"""
     update = {
         "1.6.7":
