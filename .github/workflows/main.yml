@@ -45,6 +45,9 @@ jobs:
       - name: Poetry Version
         run: poetry --version
       
+      - name: show old package
+        run: poetry show --outdated
+      
       - name: Add Pytest
         run: poetry add pytest --dev
         shell: bash
