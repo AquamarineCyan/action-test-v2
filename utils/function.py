@@ -7,12 +7,12 @@
 import random
 import time
 from pathlib import Path
+from win11toast import toast
 
 import pyautogui
 
 from package.xuanshangfengyin import xuanshangfengyin
 
-# from . import window
 from .config import config
 from .log import log
 from .window import window
@@ -57,6 +57,25 @@ class Function:
         y = self.random_num(y1, y2)
         return x, y
 
+    def completion_picture_with_png(self, file: Path) -> str:
+        """补全图片后缀(`pyautogui` need file be `str`)
+
+        Args:
+            file (Path): filename
+
+        Returns:
+            str: filename
+        """
+        if isinstance(file, Path):
+            if str(file)[-4:] not in [".png", ".jpg"]:
+                file = str(file)+".png"
+            if Path(file).exists():
+                return str(file)
+            else:
+                log.warn(f"no such file {file}")
+        else:
+            log.warn(f"error with file {file}")
+
     def get_coor_info_picture(self, file: str) -> tuple[int, int]:
         """图像识别，返回图像的全屏随机坐标
 
@@ -68,11 +87,14 @@ class Function:
         """
         # TODO 兼容Pathlib
         # filename: str = fr'./pic/{file}'
-        filename = self.resource_path / file
-        log.info(filename)
-        if isinstance(filename, Path):
-            filename = str(filename)
+        # filename = self.resource_path / file
+        # log.info(filename)
+        # if isinstance(filename, Path):
+        # filename = str(filename)
         # print("test", xuanshangfengyin.event_is_set())
+        file = self.resource_path/file
+        filename = self.completion_picture_with_png(file)
+        log.info(filename)
         # 等待悬赏封印判定
         xuanshangfengyin.event_wait()
         try:
@@ -118,20 +140,66 @@ class Function:
                 return False
 
     # TODO
-    def judge_scene_multiple(self, scene: dict, resource_path: str = None) -> str:
-        """多场景判断"""
+    def check_scene_multiple_once(self, scene: dict | list, resource_path: str = None) -> tuple[str, tuple[int, int]]:
+        """多场景判断，仅遍历一次
+
+        Args:
+            scene (dict | list): _description_
+            resource_path (str, optional): _description_. Defaults to None.
+
+        Returns:
+            tuple[str, tuple[int, int]]: _description_
+        """
         # scene = {
         #     "tansuo_28_title.png": "少女与面具",
         #     "chuzhanxiaohao.png": "出战消耗"
         # }
-        for item in scene.keys():
-            if resource_path is not None:
-                file = f"{self.resource_path}/{item}"
-            else:
-                file = item
-            x, y = self.get_coor_info_picture(file)
+        if isinstance(scene, dict):
+            for item in scene.keys():
+                if resource_path is not None:
+                    file = f"{self.resource_path}/{item}"
+                else:
+                    file = item
+                x, y = self.get_coor_info_picture(file)
+                if x != 0 and y != 0:
+                    return scene[item], (x, y)
+        elif isinstance(scene, list):
+            for item in range(len(scene)):
+                # log.ui(scene[item])
+                x, y = self.get_coor_info_picture(
+                    f"{resource_path}/{scene[item]}"
+                )
+                if x != 0 and y != 0:
+                    return scene[item], (x, y)
+            return "none", (0, 0)
+
+    def check_scene_multiple_while(self, scene: dict | list, resource_path: str = None) -> tuple[str, tuple[int, int]]:
+        """多场景判断，循环遍历，直至符合任意一个场景"""
+        while True:
+            scene, (x, y) = self.check_scene_multiple_once(self, scene, resource_path)
             if x != 0 and y != 0:
-                return scene[item]
+                return scene, (x, y)
+
+    def click(self, x: int, y: int, dura: float = 0.5, sleeptime: float = 0.0):
+        # 延迟
+        if sleeptime is not None:
+            time.sleep(sleeptime)
+        # 补间移动，默认启用
+        list_tween = [
+            pyautogui.easeInQuad,
+            pyautogui.easeOutQuad,
+            pyautogui.easeInOutQuad
+        ]
+        # XXX random for list
+        random.seed(time.time_ns())
+        pyautogui.moveTo(
+            x,
+            y,
+            duration=dura,
+            tween=list_tween[random.randint(0, 2)]
+        )
+        log.info(f"complete for (x,y):({x},{y})")
+        pyautogui.click()
 
     def judge_click(
         self,
@@ -154,25 +222,26 @@ class Function:
             x, y = self.get_coor_info_picture(file)
             if x != 0 and y != 0:
                 if click:
-                    # 延迟
-                    if sleeptime is not None:
-                        time.sleep(sleeptime)
-                    # 补间移动，默认启用
-                    list_tween = [
-                        pyautogui.easeInQuad,
-                        pyautogui.easeOutQuad,
-                        pyautogui.easeInOutQuad
-                    ]
-                    # XXX random for list
-                    random.seed(time.time_ns())
-                    pyautogui.moveTo(
-                        x,
-                        y,
-                        duration=dura,
-                        tween=list_tween[random.randint(0, 2)]
-                    )
-                    log.info(f"x,y:{x},{y}")
-                    pyautogui.click()
+                    self.click(x, y, dura, sleeptime)
+                    # # 延迟
+                    # if sleeptime is not None:
+                    #     time.sleep(sleeptime)
+                    # # 补间移动，默认启用
+                    # list_tween = [
+                    #     pyautogui.easeInQuad,
+                    #     pyautogui.easeOutQuad,
+                    #     pyautogui.easeInOutQuad
+                    # ]
+                    # # XXX random for list
+                    # random.seed(time.time_ns())
+                    # pyautogui.moveTo(
+                    #     x,
+                    #     y,
+                    #     duration=dura,
+                    #     tween=list_tween[random.randint(0, 2)]
+                    # )
+                    # log.info(f"x,y:{x},{y}")
+                    # pyautogui.click()
                 log.info("move to right coor successfully")
                 time.sleep(1)
                 flag = True
@@ -321,3 +390,32 @@ class Function:
 
 
 function = Function()
+
+
+def time_consumption_statistics(func):
+    """耗时统计
+
+    Args:
+        func (func): 函数
+    """
+    def run(*args, **kwargs):
+
+        time_start = time.perf_counter()
+
+        func(*args, **kwargs)
+
+        time_end = time.perf_counter()
+        try:
+            if time_end - time_start >= 60:
+                log.ui(f"耗时{int((time_end - time_start) // 60)}分{int((time_end - time_start) % 60)}秒")
+            else:
+                log.ui(f"耗时{int(time_end - time_start)}秒")
+        except:
+            log.error("耗时统计计算失败")
+        # 启用按钮
+        log.is_fighting(False)
+        # 系统通知
+        # 5s结束，保留至通知中心
+        toast("任务已完成")
+
+    return run

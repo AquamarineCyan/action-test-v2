@@ -7,16 +7,16 @@ from pathlib import Path
 from threading import Thread
 
 from PySide6.QtGui import QIcon, QPixmap, QTextCursor
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QWidget
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QWidget, QComboBox
 
-
-from .window import window
 from .config import config
+from .event import event_thread
+from .log import log
 from .mysignal import global_ms as ms
 from .mythread import MyThread
-from .log import log
 from .upgrade import *
-from ui.new170 import Ui_MainWindow
+from .window import window
+from ui.mainui import Ui_MainWindow
 from package import *
 
 
@@ -32,7 +32,8 @@ class MainWindow(QMainWindow):
         "8.普通召唤",
         "9.百鬼夜行",
         "10.限时活动",
-        "11.组队日轮副本"
+        "11.组队日轮副本",
+        # "12.探索beta"
     ]
     _package_ = [  # 图片素材文件夹
         "yuhun",
@@ -66,21 +67,6 @@ class MainWindow(QMainWindow):
         except:
             pass
 
-        # 事件连接
-        self.ui.button_resources.clicked.connect(self.resources)  # 资源检测按钮
-        # self.ui.button_wininfo.clicked.connect(self.wininfo_update)  # 更新窗口信息
-        self.ui.button_start.clicked.connect(self.start)  # 开始按钮
-        self.ui.combo_choice.currentIndexChanged.connect(
-            self.choice_text)  # 功能选择事件
-
-        # 自定义信号
-        ms.text_print_update.connect(self.text_print_update_func)  # 主界面信息文本更新
-        # ms.text_wininfo_update.connect(
-        # self.text_wininfo_update_func)  # 窗口信息文本更新
-        ms.text_num_update.connect(self.text_num_update_func)  # 完成情况文本更新
-        ms.is_fighting_update.connect(self.is_fighting)  # 运行状态更新
-        ms.qmessagbox_update.connect(self.qmessagbox_update_func)  # 弹窗更新
-
         # 初始化控件
         self.ui.combo_choice.addItems(self._list_function)
         self.ui.button_start.setEnabled(False)
@@ -88,48 +74,102 @@ class MainWindow(QMainWindow):
         self.ui.spinB_num.setEnabled(False)
         self.ui.stackedWidget.setCurrentIndex(0)  # 索引0，空白
         self.ui.text_print.document().setMaximumBlockCount(50)
+        # setting
+        self.ui.setting_update_comboBox.addItems(
+            config.config_default["更新模式"]
+        )
+        self.ui.setting_xuanshangfengyin_comboBox.addItems(
+            config.config_default["悬赏封印"]
+        )
+
+        # 自定义信号
+        # 弹窗更新
+        ms.qmessagbox_update.connect(self.qmessagbox_update_func)
+        # 主界面信息文本更新
+        ms.text_print_update.connect(self.text_print_update_func)
+        # 运行状态更新
+        ms.is_fighting_update.connect(self.is_fighting)
+        # 完成情况文本更新
+        ms.text_num_update.connect(self.text_num_update_func)
+        ms.setting_to_ui_update.connect(self.setting_to_ui_update_func)
+
+        # 事件连接
+        # 环境检测按钮
+        self.ui.button_enviroment.clicked.connect(self.application_init)
+        # 开始按钮
+        self.ui.button_start.clicked.connect(self.start_stop)
+        # 功能选择事件
+        self.ui.combo_choice.currentIndexChanged.connect(self.choice_text)
+
+        # 设置项
+        # 更新模式
+        self.ui.setting_update_comboBox.currentIndexChanged.connect(
+            self.setting_update_comboBox_func
+        )
+        # 悬赏封印
+        self.ui.setting_xuanshangfengyin_comboBox.currentIndexChanged.connect(
+            self.setting_xuanshangfengyin_comboBox_func
+        )
 
         # 程序开启运行
         # application_init
-        thread_update = Thread(target=self.application_init)
-        thread_update.daemon = True
-        thread_update.start()
+        thread_application_init = Thread(
+            target=self.application_init,
+            daemon=True
+        )
+        # thread_application_init.daemon = True
+        thread_application_init.start()
 
-        # thread_resources = MyThread(func=self.resources_auto)
-        # thread_resources.daemon = True
-        # thread_resources.start()
-        # thread_resources.join()
-        # self.environment(thread_resources.get_result())
+    def application_init(self) -> None:
+        """程序初始化"""
+        def init_enviroment_testing_func():
+            thread_enviroment_testing = Thread(
+                target=self.enviroment_testing_func,
+                daemon=True
+            )
+            # thread_enviroment_testing.daemon = True
+            thread_enviroment_testing.start()
+            thread_enviroment_testing.join()
 
-    def application_init(self):
-        def resources_auto():
-            thread_resources = MyThread(func=self.resources_auto)
-            thread_resources.daemon = True
-            thread_resources.start()
-            thread_resources.join()
-            self.environment(thread_resources.get_result())
-            log.info("资源检测完成")
-
-        log.ui("未正确使用所产生的一切后果自负\n保持您的肝度与日常无较大差距")
+        log.ui("未正确使用所产生的一切后果自负\n保持您的肝度与日常无较大差距\n")
         log.ui(f"application path:{config.application_path}")
         log.ui(f"resource path:{config.resource_path}")
-        window.get_game_window_handle()
-        resources_auto()
-        log.info("开机自启任务完成")
+        thread_upgrade = Thread(
+            target=Upgrade().upgrade_auto,
+            daemon=True
+        )
+        thread_upgrade.start()
 
-    def pic_is_complete(self) -> bool:
-        for i in range(len(self._package_)):
-            flag = Path(config.resource_path.joinpath(
-                self._package_[i])).exists()
-            if not flag:
-                # QMessageBox.critical(self, "ERROR", f"无{self._package_[i]}文件夹")
-                return False
-        return True
+        window.get_game_window_handle()
+        init_enviroment_testing_func()
+        log.ui("初始化完成")
+        log.ui("主要战斗场景UI为「怀旧主题」，持续兼容部分新场景中，可在游戏内图鉴中设置")
+        # 悬赏封印
+        thread_xuanshang = Thread(
+            target=xuanshangfengyin.xuanshangfengyin.judge,
+            daemon=True
+        )
+        # thread_xuanshang.daemon = True
+        thread_xuanshang.start()
 
     def qmessagbox_update_func(self, level: str, msg: str) -> None:
         match level:
             case "ERROR":
                 QMessageBox.critical(self, level, msg)
+            case "question":
+                match msg:
+                    case "强制缩放":
+                        log.error("游戏窗口大小不匹配")
+                        choice = QMessageBox.question(
+                            self,
+                            "窗口大小不匹配",
+                            "是否强制缩放，如不缩放，请自行靠近1136*640或者替换pic文件夹中对应素材"
+                        )
+                        if choice == QMessageBox.Yes:
+                            log._write_to_file("用户接受强制缩放")
+                            window.force_zoom()
+                        elif choice == QMessageBox.No:
+                            log._write_to_file("用户拒绝强制缩放")
 
     def text_print_update_func(self, text: str) -> None:
         """输出内容至文本框
@@ -147,146 +187,92 @@ class MainWindow(QMainWindow):
             self.ui.text_print.setTextColor("green")
 
         self.ui.text_print.append(text)
-        self.ui.text_print.ensureCursorVisible()  # 自动换行
-        self.ui.text_print.moveCursor(
-            self.ui.text_print.textCursor().End)  # 自动滑动到底
+        # 自动换行
+        self.ui.text_print.ensureCursorVisible()
+        # 自动滑动到底
+        self.ui.text_print.moveCursor(self.ui.text_print.textCursor().End)
         self.ui.text_print.setTextColor("black")
 
-    def text_num_update_func(self, text: str):
-        """输出内容至文本框“完成情况”"""
+    def text_num_update_func(self, text: str) -> None:
+        """输出内容至文本框“完成情况”
+
+        Args:
+            text (str): 文本
+        """
         self.ui.text_num.setText(text)
 
-    def text_wininfo_update_func(self, text: str):
-        """输出窗口信息"""
-        timenow = time.strftime("%H:%M:%S")
-        self.ui.text_wininfo.setText(text)
-        text = text.replace("\n", " ")
-        text = f"{timenow} [WINDOW] {text}"
-        print(f"[DEBUG] {text}")
-        log._write_to_file(text)
+    def setting_to_ui_update_func(self, key: str, text: str) -> None:
+        match key:
+            case "悬赏封印":
+                self.ui.setting_xuanshangfengyin_comboBox.setCurrentText(text)
 
-    def environment(self, level):
-        match level:
-            case "log":
-                QMessageBox.critical(self, "ERROR", "创建log目录失败，请重试！")
-            case "picpath":
-                QMessageBox.critical(self, "ERROR", "图片资源不存在！")
-                log._write_to_file("[ERROR] no pic")
-            case "pic is complete":
-                QMessageBox.critical(self, "ERROR", "资源缺损！")
-                log._write_to_file("[ERROR] no pic")
-            case "no game":
-                # QMessageBox.critical(self, "ERROR", "请打开游戏！")
-                ms.qmessagbox_update.emit("ERROR","请打开游戏！")
-                log._write_to_file("[ERROR] no game")
-            case "no pre-game":
-                QMessageBox.critical(self, "ERROR", "请前置游戏窗口！")
-                log._write_to_file("[ERROR] no pre-game")
-            case "no right size":
-                choice = QMessageBox.question(
-                    self, "窗口大小不匹配", "是否强制缩放，如不缩放，请自行靠近1136*640或者替换pic文件夹中对应素材")
-                log._write_to_file("[ERROR] no right size")
-                if choice == QMessageBox.Yes:
-                    window.force_zoom()
-                    log._write_to_file("user choose force_zoom")
-                elif choice == QMessageBox.No:
-                    log._write_to_file("user choose not force_zoom")
-            case _:
-                self.ui.button_resources.setEnabled(False)
-                self.ui.button_resources.setText("环境完整")
-                self.ui.combo_choice.setEnabled(True)
-                self.ui.spinB_num.setEnabled(True)
-                log.ui("移动游戏窗口后，点击下方“更新游戏窗口”即可\n请选择功能以加载内容")
-                # 悬赏封印
-                thread_xuanshang = Thread(
-                    target=xuanshangfengyin.XuanShangFengYin().judge)
-                thread_xuanshang.daemon = True
-                thread_xuanshang.start()
+    def enviroment_testing_func(self) -> bool:
+        """环境检测
 
-    def resources_auto(self) -> str:
-        """自动环境检测"""
-        log.info("resources_auto")
-        resource_path = config.resource_path
-        # handle_coor = window.getInfo_Window()  # 游戏窗口
+        Returns:
+            bool: 是否完成
+        """
+        log.info("环境检测中...")
         handle_coor = window.handle_coor
-        level: str = ""
         # log检测
         if not log.init():
-            level = "log"
+            ms.qmessagbox_update.emit("ERROR", "创建log目录失败，请重试！")
         # 图片资源检测
-        elif not resource_path.exists():
-            level = "no pic"
+        elif not config.resource_path.exists():
+            log.error("资源文件夹不存在")
+            ms.qmessagbox_update.emit("ERROR", "资源文件夹不存在！")
         # 图片资源是否完整
-        elif not self.pic_is_complete():
-            level = "pic is complete"
-        # 游戏环境检测
+        elif not self.resource_is_complete():
+            pass
+        # 游戏窗口检测
         elif handle_coor == (0, 0, 0, 0):
-            level = "no game"
+            log.error("未打开游戏")
+            ms.qmessagbox_update.emit("ERROR", "请打开游戏！")
         elif handle_coor[0] < -9 or handle_coor[1] < 0 or handle_coor[2] < 0 or handle_coor[3] < 0:
-            level = "no pre-game"
+            log.error("未前置游戏窗口")
+            ms.qmessagbox_update.emit("ERROR", "请前置游戏窗口！")
         # 环境完整
         # TODO 解除窗口大小限制，待优化
         elif handle_coor[2] - handle_coor[0] != window.absolute_window_width and handle_coor[3] - handle_coor[
                 1] != window.absolute_window_height:
-            level = "no right size"
-
-        return level
-    # FIXME remove for old code
-
-    def resources(self):
-        """环境检测按钮"""
-        handle_coor = window.get_game_window_handle()  # 游戏窗口
-        # log检测
-        if not log.init():
-            QMessageBox.critical(self, "ERROR", "创建log目录失败，请重试！")
-        # 图片资源检测
-        elif not config.resource_path.exists():
-            QMessageBox.critical(self, "ERROR", "图片资源不存在！")
-            log._write_to_file("[ERROR] no pic")
-        # 图片资源是否完整
-        # elif not self.pic_is_complete():
-        #     pass
-        # 游戏环境检测
-        elif handle_coor == (0, 0, 0, 0):
-            QMessageBox.critical(self, "ERROR", "请打开游戏！")
-            log._write_to_file("[ERROR] no game")
-        elif handle_coor[0] < -9 or handle_coor[1] < 0 or handle_coor[2] < 0 or handle_coor[3] < 0:
-            QMessageBox.critical(self, "ERROR", "请前置游戏窗口！")
-            log._write_to_file("[ERROR] no pre-game")
-        # elif handle_coor[2] - handle_coor[0] != window.absolute_window_width and handle_coor[3] - handle_coor[
-        #     1] != window.absolute_window_height:
-        #     QMessageBox.critical(self, "ERROR", "窗口大小不匹配!")
-        #     log._write_to_file("[ERROR] no right size")
-        # 环境完整
+            ms.qmessagbox_update.emit("question", "强制缩放")
         else:
-            self.ui.button_resources.setEnabled(False)
-            self.ui.button_resources.setText("环境完整")
+            log.ui("环境完整")
             self.ui.combo_choice.setEnabled(True)
             self.ui.spinB_num.setEnabled(True)
-            log.ui("移动游戏窗口后，点击下方“更新游戏窗口”即可\n请选择功能以加载内容")
+            log.ui("移动游戏窗口后，点击下方“环境检测”即可\n请选择功能以加载内容")
             # 悬赏封印
-            thread_xuanshang = Thread(
-                target=xuanshangfengyin.XuanShangFengYin().judge)
-            thread_xuanshang.daemon = True
-            thread_xuanshang.start()
+            return True
+        log.ui("环境损坏")
+        return False
 
-        # 解除窗口大小限制，待优化
-        if handle_coor[2] - handle_coor[0] != window.absolute_window_width and handle_coor[3] - handle_coor[
-                1] != window.absolute_window_height:
-            choice = QMessageBox.question(
-                self, "窗口大小不匹配", "是否强制缩放，如不缩放，请自行靠近1136*640或者替换pic文件夹中对应素材")
-            # QMessageBox.critical(self, "ERROR", "窗口大小不匹配!\n"
-            #                                     "已解除窗口大小限制，请尽量靠近1136*640")
-            log._write_to_file("[ERROR] no right size")
-            if choice == QMessageBox.Yes:
-                window.force_zoom()
-                log._write_to_file("user choose force_zoom")
-            elif choice == QMessageBox.No:
-                log._write_to_file("user choose not force_zoom")
+    def resource_is_complete(self) -> bool:
+        """资源文件夹完整度
 
-    # def wininfo_update(self):
-    #     """更新窗口信息"""
-    #     window.getInfo_Window()
+        Returns:
+            bool: 是否完整
+        """
+        for i in range(len(self._package_)):
+            flag = Path(config.resource_path.joinpath(
+                self._package_[i])).exists()
+            if not Path(config.resource_path.joinpath(self._package_[i])).exists():
+                # QMessageBox.critical(self, "ERROR", f"无{self._package_[i]}文件夹")
+                log.error(f"无{self._package_[i]}文件夹")
+                ms.qmessagbox_update.emit("ERROR", f"无{self._package_[i]}文件夹")
+                return False
+        return True
+
+    def setting_update_comboBox_func(self) -> None:
+        """设置-更新模式-更改"""
+        text = self.ui.setting_update_comboBox.currentText()
+        log.info(f"设置项：更新模式已更改为 {text}")
+        config.config_user_changed("更新模式", text)
+
+    def setting_xuanshangfengyin_comboBox_func(self) -> None:
+        """设置-悬赏封印-更改"""
+        text = self.ui.setting_xuanshangfengyin_comboBox.currentText()
+        log.info(f"设置项：悬赏封印已更改为 {text}")
+        config.config_user_changed("悬赏封印", text)
 
     def choice_text(self):
         """功能描述"""
@@ -371,7 +357,8 @@ class MainWindow(QMainWindow):
             # 10.限时活动
             self._choice = 10
             log.ui(
-                "适用于限时活动及其他连点，请提前确保阵容完好并锁定，替换pic文件夹huodong下的title.png、tiaozhan.png，周年庆活动素材已替换")
+                "适用于限时活动及其他连点，请提前确保阵容完好并锁定，替换pic文件夹huodong下的title.png、tiaozhan.png，周年庆活动素材已替换"
+            )
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
         elif text == self._list_function[10]:
@@ -384,85 +371,141 @@ class MainWindow(QMainWindow):
             self.ui.spinB_num.setRange(1, 100)
             self.ui.button_driver_False.setChecked(True)
             self.ui.button_passengers_2.setChecked(True)
+        elif text == self._list_function[11]:
+            # 12.探索beta
+            self._choice = 12
+            log.warn("测试功能", True)
 
-    def start(self):
-        """开始按钮"""
-        n = self.ui.spinB_num.value()
-        self.ui.text_num.clear()
-        self.is_fighting(True)
-        thread = None  # 线程
-        if self._choice == 1:
-            # 1.组队御魂副本
-            # 是否司机（默认否）
-            # 组队人数（默认2人）
-            driver = self.ui.buttonGroup_driver.checkedButton().text()
-            if driver == "否":
-                flag_driver = False
-            else:
-                flag_driver = True
-            flag_passengers = int(
-                self.ui.buttonGroup_passengers.checkedButton().text())
-            thread = Thread(target=yuhun.YuHun().run, args=(
-                n, flag_driver, flag_passengers))
-        elif self._choice == 2:
-            # 2.组队永生之海副本
-            # 是否司机（默认否）
-            driver = self.ui.buttonGroup_driver.checkedButton().text()
-            if driver == "否":
-                flag_driver = False
-            else:
-                flag_driver = True
-            thread = Thread(
-                target=yongshengzhihai.YongShengZhiHai().run, args=(n, flag_driver))
-        elif self._choice == 3:
-            # 3.业原火
-            thread = Thread(target=yeyuanhuo.YeYuanHuo().run, args=(n,))
-        elif self._choice == 4:
-            # 4.御灵
-            thread = Thread(target=yuling.YuLing().run, args=(n,))
-        elif self._choice == 5:
-            # 5.个人突破
-            thread = Thread(target=jiejietupo.JieJieTuPoGeRen().run, args=(n,))
-        elif self._choice == 6:
-            # 6.寮突破
-            thread = Thread(
-                target=jiejietupo.JieJieTuPoYinYangLiao().run, args=(n,))
-        elif self._choice == 7:
-            # 7.道馆突破
-            flag_guanzhan = self.ui.button_guanzhan.isChecked()
-            thread = Thread(target=daoguantupo.DaoGuanTuPo().run,
-                            args=(flag_guanzhan,))
-        elif self._choice == 8:
-            # 8.普通召唤
-            thread = Thread(target=zhaohuan.ZhaoHuan().run, args=(n,))
-        elif self._choice == 9:
-            # 9.百鬼夜行
-            thread = Thread(target=baiguiyexing.BaiGuiYeXing().run, args=(n,))
-        elif self._choice == 10:
-            # 10.限时活动
-            thread = Thread(target=huodong.HuoDong().run, args=(n,))
-        elif self._choice == 11:
-            # 11.组队日轮副本
-            # 是否司机（默认否）
-            # 组队人数（默认2人）
-            driver = self.ui.buttonGroup_driver.checkedButton().text()
-            if driver == "否":
-                flag_driver = False
-            else:
-                flag_driver = True
-            flag_passengers = int(
-                self.ui.buttonGroup_passengers.checkedButton().text())
-            thread = Thread(
-                target=rilun.RiLun().run,
-                args=(n, flag_driver, flag_passengers)
-            )
+    def start_stop(self) -> None:
+        """开始&停止按钮"""
 
-        # 线程存在
-        if thread is not None:
-            thread.daemon = True  # 线程守护
-            thread.start()
-        # 进行中
-        self.is_fighting(True)
+        def start() -> None:
+            """开始函数"""
+            n = self.ui.spinB_num.value()
+            self.ui.text_num.clear()
+            self.is_fighting(True)
+            thread = None  # 线程
+            match self._choice:
+                case 1:
+                    # 1.组队御魂副本
+                    # 是否司机（默认否）
+                    # 组队人数（默认2人）
+                    driver = self.ui.buttonGroup_driver.checkedButton().text()
+                    if driver == "否":
+                        flag_driver = False
+                    else:
+                        flag_driver = True
+                    flag_passengers = int(
+                        self.ui.buttonGroup_passengers.checkedButton().text()
+                    )
+                    thread = Thread(
+                        target=yuhun.YuHun().run,
+                        args=(n, flag_driver, flag_passengers)
+                    )
+                    # 当前线程id
+                    # print('main id', int(QThread.currentThreadId()))
+                    # thread = MyThread(
+                    #     func=yuhun.YuHun().run,
+                    #     args=(n, flag_driver, flag_passengers)
+                    # )
+                    # self._thread.finished.connect(self._thread.deleteLater())
+                case 2:
+                    # 2.组队永生之海副本
+                    # 是否司机（默认否）
+                    driver = self.ui.buttonGroup_driver.checkedButton().text()
+                    if driver == "否":
+                        flag_driver = False
+                    else:
+                        flag_driver = True
+                    thread = Thread(
+                        target=yongshengzhihai.YongShengZhiHai().run,
+                        args=(n, flag_driver)
+                    )
+                case 3:
+                    # 3.业原火
+                    thread = Thread(
+                        target=yeyuanhuo.YeYuanHuo().run,
+                        args=(n,)
+                    )
+                case 4:
+                    # 4.御灵
+                    thread = Thread(
+                        target=yuling.YuLing().run,
+                        args=(n,)
+                    )
+                case 5:
+                    # 5.个人突破
+                    thread = Thread(
+                        target=jiejietupo.JieJieTuPoGeRen().run,
+                        args=(n,)
+                    )
+                case 6:
+                    # 6.寮突破
+                    thread = Thread(
+                        target=jiejietupo.JieJieTuPoYinYangLiao().run,
+                        args=(n,)
+                    )
+                case 7:
+                    # 7.道馆突破
+                    flag_guanzhan = self.ui.button_guanzhan.isChecked()
+                    thread = Thread(
+                        target=daoguantupo.DaoGuanTuPo().run,
+                        args=(flag_guanzhan,)
+                    )
+                case 8:
+                    # 8.普通召唤
+                    thread = Thread(
+                        target=zhaohuan.ZhaoHuan().run,
+                        args=(n,)
+                    )
+                case 9:
+                    # 9.百鬼夜行
+                    thread = Thread(
+                        target=baiguiyexing.BaiGuiYeXing().run,
+                        args=(n,)
+                    )
+                case 10:
+                    # 10.限时活动
+                    thread = Thread(target=huodong.HuoDong(n).run)
+                case 11:
+                    # 11.组队日轮副本
+                    # 是否司机（默认否）
+                    # 组队人数（默认2人）
+                    driver = self.ui.buttonGroup_driver.checkedButton().text()
+                    if driver == "否":
+                        flag_driver = False
+                    else:
+                        flag_driver = True
+                    flag_passengers = int(
+                        self.ui.buttonGroup_passengers.checkedButton().text()
+                    )
+                    thread = Thread(
+                        target=rilun.RiLun().run,
+                        args=(n, flag_driver, flag_passengers)
+                    )
+                case 12:
+                    thread = Thread(target=tansuo.TanSuo().running)
+            # 线程存在
+            if thread is not None:
+                thread.daemon = True  # 线程守护
+                thread.start()
+            # 进行中
+            self.is_fighting(True)
+
+        def stop() -> None:
+            """停止函数"""
+            # ret = ctypes.windll.kernel32.TerminateThread(self._thread.handle, 0)
+            # print('终止线程', self._thread.handle, ret)
+            event_thread.set()
+            print("尝试停止线程")
+
+        match self.ui.button_start.text():
+            case "开始":
+                start()
+            case "停止":  # TODO unable to use
+                stop()
+            case _:
+                pass
 
     def is_fighting(self, flag: bool):
         """程序是否运行中，启用/禁用其他控件"""

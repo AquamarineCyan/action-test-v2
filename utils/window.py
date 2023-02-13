@@ -137,6 +137,7 @@ class Window():
         # window_height = self.window_height
         # handle = self.handle
         # handle_coor = self.handle_coor
+        log.info("获取游戏窗口信息中...")
         try:
             # 获取窗口句柄
             self.handle = win32gui.FindWindow("Win32Window", "阴阳师-网易游戏")

@@ -72,6 +72,8 @@ class Log:
                 text = f"{time_now} [NUM] {text}"
             case "WARN":
                 text = f"{time_now} [WARN] {text}"
+            case "ERROR":
+                text = f"{time_now} [ERROR] {text}"
             case _:
                 text = f"{time_now} [INFO] {text}"
         print(text)  # 输出至控制台调试
@@ -122,6 +124,15 @@ class Log:
             print_to_gui (bool, optional): 是否在UI界面输出. Defaults to False.
         """
         self._text(text, "WARN", print_to_gui)
+    
+    def error(self, text: str, print_to_gui: bool = False):
+        """错误日志
+
+        Args:
+            text (str): 文本内容
+            print_to_gui (bool, optional): 是否在UI界面输出. Defaults to False.
+        """
+        self._text(text, "ERROR", print_to_gui)
 
     def is_fighting(self, flag: bool = True):
         """是否进行中，禁用按钮

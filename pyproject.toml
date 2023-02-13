@@ -5,19 +5,16 @@ description = "auto for Onmyoji"
 authors = ["AquamarineCyan <1057424730@qq.com>"]
 readme = "README.md"
 
-
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 pyautogui = "^0.9.53"
 httpx = "^0.23.0"
-requests = "^2.28.1"
 pywin32 = "^305"
 pyside6 = "6.3.0"
 opencv-python = "^4.6.0.66"
 numpy = "^1.23.4"
 pillow = "^9.1.1"
 pyinstaller = "5.6.2"
-win10toast = "^0.9"
 pyyaml = "^6.0"
 win11toast = "^0.32"
 
@@ -31,7 +28,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 # 设置poetry包管理工具的自定义pypi镜像源配置
-# [[tool.poetry.source]]
-# name = "aliyun"
-# url = "http://mirrors.aliyun.com/pypi/simple"
-# default = true
+[[tool.poetry.source]]
+name = "aliyun"
+url = "http://mirrors.aliyun.com/pypi/simple"
+default = true
