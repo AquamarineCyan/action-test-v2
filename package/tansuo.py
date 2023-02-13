@@ -8,10 +8,10 @@ from pathlib import Path
 import time
 import pyautogui
 
-from utils.window import window
-from utils.function import function
-from utils.log import log
 
+from utils.function import function, time_consumption_statistics
+from utils.log import log
+from utils.window import window
 """
 探索困难28场景
 tansuo_28_title.png
@@ -91,10 +91,9 @@ class TanSuo:
         except:
             pass
 
+    @ time_consumption_statistics
     def run(self):
         time.sleep(2)
-        time_progarm = function.TimeProgram()  # 程序计时
-        time_progarm.start()
         if self.title():
             log.num(f"0/{self.n}")
             function.random_sleep(1, 3)
@@ -106,8 +105,164 @@ class TanSuo:
                         pass
 
         text = f"已完成 探索困难28章 {self.m}次"
-        time_progarm.end()
-        text = text + " " + time_progarm.print()
         log.info(text, True)
-        # 启用按钮
-        log.is_fighting(False)
+
+
+class TanSuoTest:
+    """探索 test"""
+
+    def __init__(self, n: int = 0) -> None:
+        self.scene_name = "探索"
+        self.resource_path = "tansuo"  # 路径
+        self.n = 0  # 当前次数
+        self.max = n  # 总次数
+        self.scene_list: list = [
+            "boss_finish",
+            "chuzhanxiaohao",
+            "fighting",
+            "fighting_boss",
+            "kunnan_big",
+            "kunnan_small",
+            "putong_big",
+            "putong_small",
+            "quit_true",
+            "quit_true_false",
+            "tansuo",
+            "tansuo_28",
+            "tansuo_28_0",
+            "tansuo_28_title",
+            "treasure_chest",
+            "zidonglunhuan"
+        ]
+
+    def title_simple(self) -> bool:
+        """场景"""
+        flag_title = True  # 场景提示
+        while True:
+            if function.judge_scene(f"{self.resource_path}/title.png", self.scene_name):
+                return True
+            elif flag_title:
+                flag_title = False
+                log.warn("请检查游戏场景", True)
+
+    def judge_scene_daoguantupo(self) -> str:
+        """场景判断"""
+        scene = {
+            "daojishi.png": "倒计时",
+            "shengyutuposhijian.png": "可进攻",
+            "guanzhuzhan.png": "馆主战",
+            "button_zhuwei.png": "进行中"
+        }  # "可进攻"未实现
+        for item in scene.keys():
+            x, y = self.get_coor_info_picture(item)
+            if x != 0 and y != 0:
+                return scene[item]
+
+    def title_daoguan(self) -> bool:
+        """场景"""
+        flag_title = True  # 场景提示
+        self.flag_fighting = False  # 进行中
+        flag_daojishi = True  # 倒计时
+        while True:
+            if function.judge_scene(f"{self.resource_path}/title.png", self.scene_name):
+                while True:
+                    # 等待倒计时自动进入
+                    if self.judge_scene_daoguantupo() == "倒计时":
+                        if flag_daojishi:
+                            log.info("等待倒计时自动进入", True)
+                            flag_daojishi = False
+                        self.flag_fighting = True
+                        break
+                    elif self.judge_scene_daoguantupo() == "可进攻":
+                        self.flag_fighting = False
+                        break
+                    # 馆主战
+                    elif self.judge_scene_daoguantupo() == "馆主战":
+                        log.warn("待开发", True)
+                        break
+                return True
+            # 已进入道馆进攻状态
+            elif self.judge_scene_daoguantupo() == "进行中":
+                log.info("道馆突破进行中", True)
+                self.flag_fighting = True
+                return True
+            elif flag_title:
+                flag_title = False
+                log.warn("请检查游戏场景", True)
+
+    def title(self) -> bool:
+        flag_title = True  # 场景提示
+        flag_fighting = False  # 进行中
+        while True:
+            scene_list: list = [
+                "chuzhanxiaohao",
+                "tansuo_28",
+                "tansuo_28_0",
+                "tansuo_28_title"
+            ]
+            scene = function.check_scene_multiple_once(scene_list)
+            match scene:
+                case "chuzhanxiaohao":
+                    log.ui("chuzhanxiaohao")
+                    return True
+                case "tansuo_28":
+                    log.ui("tansuo_28")
+                    return True
+                case "tansuo_28_0":
+                    log.ui("tansuo_28_0")
+                    return True
+                case "tansuo_28_title":
+                    log.ui("tansuo_28_title")
+                    return True
+                case _:
+                    if flag_title:
+                        flag_title = False
+                        log.warn("请检查游戏场景", True)
+
+    @time_consumption_statistics
+    def run_0(self) -> None:
+        time.sleep(2)
+        if self.title():
+            log.num(f"0/{self.max}")
+            function.random_sleep(1, 3)
+            while self.n < self.max:
+                function.random_sleep(1, 2)
+                # 开始
+                function.judge_click(f"{self.resource_path}/tiaozhan.png")
+                # 结束
+                function.result()
+                function.random_sleep(1, 2)
+                # 结算
+                function.random_finish_left_right(is_yuling=True)
+                function.random_sleep(1, 3)
+                self.n += 1
+                log.num(f"{self.n}/{self.max}")
+        text = f"已完成 {self.scene_name} {self.n}次"
+        log.ui(text)
+
+    @time_consumption_statistics
+    def run(self):
+        log.ui("单人探索，测试功能，未完成")
+        self.max = 2
+        while self.n < self.max and self.title():
+            scene_list = [
+                "tansuo_28_0",
+                "tansuo_28_title",
+                "kunnan_big",
+                "tansuo"
+            ]
+            while True:
+                scene, (x, y) = function.check_scene_multiple_once(scene_list, self.resource_path)
+                if x != 0 and y != 0:
+                    log.scene(scene)
+                    log.ui("complete")
+                    break
+            match scene:
+                case "tansuo_28_0":
+                    # function.judge_click(f"{self.resource_path}/tansuo")
+                    function.click(x, y)
+                    self.n += 1
+                    time.sleep(2)
+                case "tansuo_28_title":
+                    function.judge_click(f"{self.resource_path}/tansuo")
+                    self.n += 1

@@ -9,5 +9,6 @@ from package import (
     baiguiyexing,  # 9
     huodong,  # 10
     rilun,  # 11
+    tansuo,  # 12
     xuanshangfengyin
 )

@@ -10,7 +10,7 @@ import time
 import pyautogui
 from utils.config import config
 from utils.window import window
-from utils.function import function
+from utils.function import function, time_consumption_statistics
 from utils.log import log
 
 """
@@ -165,7 +165,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
         while True:
             if function.judge_scene(f"{self.resource_path}/title.png", "结界突破"):
                 while True:
-                    if self.judge_scene(f"{self.resource_path}/fangshoujilu.png", "个人突破"):
+                    if function.judge_scene(f"{self.resource_path}/fangshoujilu.png", "个人突破"):
                         return True
                     else:
                         time.sleep(1)
@@ -328,11 +328,10 @@ class JieJieTuPoGeRen(JieJieTuPo):
                 flag_refresh = True
                 time.sleep(time_wait)
 
+    @time_consumption_statistics
     def run(self, n: int) -> None:
         time.sleep(2)
         self.n = n
-        time_progarm = function.TimeProgram()  # 程序计时
-        time_progarm.start()
         if self.title():
             log.num(f"0/{self.n}")
             function.random_sleep(1, 3)
@@ -353,11 +352,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
                     break
                 time.sleep(3)
         text = f"已完成 个人突破 {self.m}次"
-        time_progarm.end()
-        text = text + " " + time_progarm.print()
         log.info(text, True)
-        # 启用按钮
-        log.is_fighting(False)
 
 
 class JieJieTuPoYinYangLiao(JieJieTuPo):
@@ -464,17 +459,16 @@ class JieJieTuPoYinYangLiao(JieJieTuPo):
                     flag = -1
                     return flag
 
+    @time_consumption_statistics
     def run(self, n: int) -> None:
         time.sleep(2)
         self.n = n
-        time_progarm = function.TimeProgram()  # 程序计时
-        time_progarm.start()
         if self.title():
             log.num(f"0/{self.n}")
             function.random_sleep(1, 3)
             while self.m < self.n:
                 time.sleep(1)
-                flag = self.fighting(self)
+                flag = self.fighting()
                 if flag:
                     self.m += 1
                     log.num(f"{self.m}/{self.n}")
@@ -482,8 +476,4 @@ class JieJieTuPoYinYangLiao(JieJieTuPo):
                     break
                 time.sleep(3)
         text = f"已完成 阴阳寮突破 {self.m}次"
-        time_progarm.end()
-        text = text + " " + time_progarm.print()
         log.info(text, True)
-        # 启用按钮
-        log.is_fighting(False)

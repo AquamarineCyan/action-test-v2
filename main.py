@@ -8,12 +8,9 @@ from PySide6.QtWidgets import QApplication
 
 from utils.gui import MainWindow
 
-print("main.py")
-
 if __name__ == "__main__":
     # 是否以管理员身份运行
     if windll.shell32.IsUserAnAdmin():
-        print("Admin")
         app = QApplication([])
         main_win_ui = MainWindow()
         main_win_ui.show()

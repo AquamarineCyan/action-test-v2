@@ -8,11 +8,13 @@ from pathlib import Path
 import time
 import pyautogui
 import random
+from win11toast import toast
 
 from utils.config import config
 from utils.event import event_xuanshang
 from utils.log import log
 from utils.window import window
+
 
 class XuanShangFengYin:
     """悬赏封印"""
@@ -66,7 +68,7 @@ class XuanShangFengYin:
         :param pic: 文件路径&图像名称(*.png)
         :return: None
         """
-        while 1:
+        while True:
             x, y = self.get_coor_info_picture(file)
             if x != 0 and y != 0:
                 # 补间移动，默认启用
@@ -87,7 +89,8 @@ class XuanShangFengYin:
                 return
 
     def judge(self) -> None:
-        while 1:
+        log.info("悬赏封印进行中...")
+        while True:
             if self._flag_is_first:
                 event_xuanshang.set()
                 self._flag_is_first = False
@@ -99,10 +102,26 @@ class XuanShangFengYin:
                     event_xuanshang.clear()
                     self._flag = True
                     log.warn("已暂停后台线程，等待处理", True)
+                    toast("悬赏封印", "检测到协作")
                     print(event_xuanshang.is_set())
-                    log.info("当前版本下，自动接受任何协作", True)
-                    self.judge_click(
-                        f"{self.resource_path}/xuanshang_accept.png")
+                    match config.xuanshangfengyin_receive:
+                        case "接受":
+                            log.ui("自动接受协作")
+                            # log.info("当前版本下，自动接受任何协作", True)
+                            self.judge_click(
+                                f"{self.resource_path}/xuanshang_accept.png")
+                        case "拒绝":
+                            log.ui("自动拒绝协作")
+                            self.judge_click(
+                                f"{self.resource_path}/xuanshang_refuse.png")
+                        case "忽略":
+                            log.ui("自动忽略协作")
+                            self.judge_click(
+                                f"{self.resource_path}/xuanshang_ignore.png")
+                        case _:
+                            log.ui("用户配置出错，自动接受协作")
+                            self.judge_click(
+                                f"{self.resource_path}/xuanshang_accept.png")
             else:
                 event_xuanshang.set()
                 if self._flag:
