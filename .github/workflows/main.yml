@@ -47,13 +47,14 @@ jobs:
       - name: Poetry Version
         run: poetry --version
       
-      - name: show old package
+      - name: Show Old Package
         run: poetry show --outdated
       
-      - name: Add Pytest
-        run: poetry add pytest --dev
-        shell: bash
+#      - name: Add Pytest
+#        run: poetry add pytest --dev
+#        shell: bash
         
       - name: Run Pytest
         run: |
+          cd tests
           poetry run pytest
