@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "onmyoji-python"
-version = "1.6.7"
+version = "1.7.0"
 description = "auto for Onmyoji"
 authors = ["AquamarineCyan <1057424730@qq.com>"]
 readme = "README.md"
@@ -12,17 +12,19 @@ pyautogui = "^0.9.53"
 httpx = "^0.23.0"
 requests = "^2.28.1"
 pywin32 = "^305"
-pyside6 = "6.3.0"
 opencv-python = "^4.6.0.66"
 numpy = "^1.23.4"
 pillow = "^9.1.1"
 pyinstaller = "5.6.2"
-win10toast = "^0.9"
+pyside6 = "6.3.0"
 pyyaml = "^6.0"
+win11toast = "^0.32"
+win10toast = "^0.9"
 
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.0.0"
+pytest = "^7.2.1"
 
 [build-system]
 requires = ["poetry-core"]
