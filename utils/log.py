@@ -36,20 +36,21 @@ class Log:
             print("log already has")
             return True
 
-    def _write_to_file(self, text: str | int) -> None:
+    def _write_to_file(self, text: str) -> bool:
         """write text to log.txt
 
         Args:
-            text (str | int): 文本内容
+            text (str): 文本内容
         """
+        file: Path = self.fpath / f"log/log-{time.strftime('%Y%m%d')}.txt"
         try:
-            with open(fr"{self.fpath}\log\log-{time.strftime('%Y%m%d')}.txt", mode="a", encoding="utf-8") as f:
-                f.write(text)
-                f.write("\n")
+            with file.open(mode="a", encoding="utf-8") as f:
+                f.write(f"{text}\n")
+                return True
         except:
-            print(
-                f"FileNotFoundError {self.fpath}\log\log-{time.strftime('%Y%m%d')}.txt")
+            print(f"FileNotFoundError {file}")
             print("fail to create log")
+            return False
 
     def _text(self, text: str, level: str = "INFO", print_to_gui: bool = False) -> str:
         """封装文本格式
