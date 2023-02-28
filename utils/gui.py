@@ -117,7 +117,6 @@ class MainWindow(QMainWindow):
             target=self.application_init,
             daemon=True
         )
-        # thread_application_init.daemon = True
         thread_application_init.start()
 
     def application_init(self) -> None:
@@ -127,13 +126,12 @@ class MainWindow(QMainWindow):
                 target=self.enviroment_testing_func,
                 daemon=True
             )
-            # thread_enviroment_testing.daemon = True
             thread_enviroment_testing.start()
             thread_enviroment_testing.join()
-
+        
+        log.info(f"application path:{config.application_path}")
+        log.info(f"resource path:{config.resource_path}")
         log.ui("未正确使用所产生的一切后果自负\n保持您的肝度与日常无较大差距\n")
-        log.ui(f"application path:{config.application_path}")
-        log.ui(f"resource path:{config.resource_path}")
         thread_upgrade = Thread(
             target=Upgrade().upgrade_auto,
             daemon=True
@@ -144,12 +142,12 @@ class MainWindow(QMainWindow):
         init_enviroment_testing_func()
         log.ui("初始化完成")
         log.ui("主要战斗场景UI为「怀旧主题」，持续兼容部分新场景中，可在游戏内图鉴中设置")
+        log.clean_up()
         # 悬赏封印
         thread_xuanshang = Thread(
             target=xuanshangfengyin.xuanshangfengyin.judge,
             daemon=True
         )
-        # thread_xuanshang.daemon = True
         thread_xuanshang.start()
 
     def qmessagbox_update_func(self, level: str, msg: str) -> None:
@@ -217,6 +215,10 @@ class MainWindow(QMainWindow):
         # log检测
         if not log.init():
             ms.qmessagbox_update.emit("ERROR", "创建log目录失败，请重试！")
+        # 中文路径
+        elif config.is_Chinese_Path():
+            log.error("Chinese Path")
+            ms.qmessagbox_update.emit("ERROR", "请在英文路径打开！")
         # 图片资源检测
         elif not config.resource_path.exists():
             log.error("资源文件夹不存在")
@@ -284,7 +286,7 @@ class MainWindow(QMainWindow):
         if text == self._list_function[0]:
             # 1.组队御魂副本
             self._choice = 1
-            log.ui("请确保阵容稳定，仅适用于队友挂饼，不适用于极限卡速，默认打手\n待开发：手动第一次锁定阵容")
+            log.ui("请确保阵容稳定，仅适用于队友挂饼，不适用于极限卡速，默认打手\n已适配组队魂土、神罚副本\n待开发：手动第一次锁定阵容")
             self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
             # 默认值
             self.ui.spinB_num.setValue(1)
@@ -395,13 +397,8 @@ class MainWindow(QMainWindow):
                         flag_driver = False
                     else:
                         flag_driver = True
-                    flag_passengers = int(
-                        self.ui.buttonGroup_passengers.checkedButton().text()
-                    )
-                    thread = Thread(
-                        target=yuhun.YuHun().run,
-                        args=(n, flag_driver, flag_passengers)
-                    )
+                    flag_passengers = int(self.ui.buttonGroup_passengers.checkedButton().text())
+                    thread = Thread(target=yuhun.YuHun(n, flag_driver, flag_passengers).run)
                     # 当前线程id
                     # print('main id', int(QThread.currentThreadId()))
                     # thread = MyThread(

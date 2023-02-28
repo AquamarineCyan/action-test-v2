@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# config.py
+
 """
 from utils.config import config
 """
@@ -12,7 +16,7 @@ from .mythread import MyThread
 
 class Config():
     def __init__(self) -> None:
-        self.version: str = "1.7.0"
+        self.version: str = "1.7.1"
         self.application_path: Path = Path.cwd()
         if Path(self.application_path / "resource").is_dir():
             self.resource_path: Path = self.application_path / "resource"
@@ -28,12 +32,9 @@ class Config():
         }
         self.config_user: dict = None
 
-        thread_config_init = MyThread(func=self.config_yaml_init)
-        thread_config_init.daemon = True
-        thread_config_init.start()
-
     def config_yaml_init(self):
         if self.config_yaml_path.is_file():
+            self._write_to_file("file config.yaml has already.")
             data = self.config_yaml_read()
             # 更新模式
             # self.update_mode = self.check_dict_key_is_in_list(
@@ -44,7 +45,7 @@ class Config():
             data = self.check_config(data)
             # self._write_to_file(self.xuanshangfengyin_receive)
         else:
-            self._write_to_file("不存在配置文件")
+            self._write_to_file("cannot find file config.yaml.")
             data = self.config_default
             for item in data.keys():
                 value = data[item]
@@ -56,7 +57,7 @@ class Config():
                     data[item] = value
         self.config_yaml_save(data)
         self.config_user = data
-        self._write_to_file("成功创建配置文件")
+        self._write_to_file("create file config.yaml success.")
         self.setting_to_ui_qcombobox_update_func()
 
     def config_yaml_read(self) -> dict:
@@ -69,7 +70,7 @@ class Config():
             with open(self.config_yaml_path, "w", encoding="utf-8") as f:
                 yaml.dump(data, f, allow_unicode=True, sort_keys=False)
         else:
-            self._write_to_file("保存失败")
+            self._write_to_file("file config.yaml save failed.")
 
     # def check_dict_key_is_in_list(self, config_dict: dict, key: str, config_list: list):
     #     """给出一个字典和键值，检查值是否包含在列表中，如包含，返回值；如未包含，返回列表第一个值
@@ -136,28 +137,39 @@ class Config():
     def setting_to_ui_qcombobox_update_func(self) -> None:
         """配置项同步gui"""
         # key = "悬赏封印"
-        self._write_to_file("*************")
         # self._write_to_file(self.config_user[key])
         for item in self.config_default.keys():
             self._write_to_file(item)
             self._write_to_file(self.config_user[item])
             ms.setting_to_ui_update.emit(item, self.config_user[item])
 
-    def _write_to_file(self, text: str | int) -> None:
-        """write text to log.txt
+    def _write_to_file(self, text: str | int) -> bool:
+        """写入日志文件
 
         Args:
             text (str | int): 文本内容
+
+        Returns:
+            bool: 文本写入是否成功
         """
-        print(text)
+        file: Path = self.application_path / f"log/log-{time.strftime('%Y%m%d')}.txt"
+        if isinstance(text, int):
+            text = str(text)
         try:
-            with open(fr"{self.application_path}\log\log-{time.strftime('%Y%m%d')}.txt", mode="a", encoding="utf-8") as f:
+            with file.open(mode="a", encoding="utf-8") as f:
                 f.write(f"{text}\n")
+                return True
         except:
-            print(
-                f"FileNotFoundError {self.application_path}\log\log-{time.strftime('%Y%m%d')}.txt"
-            )
-            print("fail to create log")
+            print(f"FileNotFoundError {file}")
+            return False
+
+    def is_Chinese_Path(self) -> bool:
+        import re
+        zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+        match = zhPattern.search(str(self.application_path))
+        if not match:
+            return False
+        return True
 
 
 config = Config()

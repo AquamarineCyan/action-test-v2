@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
-# window.py
+# mouse.py
 """
 鼠标信息
 """
 
-import time
 import pyautogui
 
-mouse_x: int
-mouse_y: int
+# https://pyautogui.readthedocs.io/en/latest/mouse.html#the-screen-and-mouse-position
 
-
-def GetInfo_Mouse():
-    """获取鼠标当前位置坐标"""
-    global mouse_x
-    global mouse_y
-    mouse_x, mouse_y = pyautogui.position()
-    print(mouse_x, mouse_y)
-
-
-if __name__ == '__main__':
-    time.sleep(2)
-    GetInfo_Mouse()
+print('Press Ctrl-C to quit.')
+try:
+    while True:
+        x, y = pyautogui.position()
+        positionStr = 'X: ' + str(x).rjust(4) + ' Y: ' + str(y).rjust(4)
+        print(positionStr, end='')
+        print('\b' * len(positionStr), end='', flush=True)
+except KeyboardInterrupt:
+    print('\n')
