@@ -168,7 +168,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 532, 1000))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 98, 1000))
         self.scrollAreaWidgetContents.setMinimumSize(QSize(0, 1000))
         self.horizontalLayoutWidget = QWidget(self.scrollAreaWidgetContents)
         self.horizontalLayoutWidget.setObjectName(u"horizontalLayoutWidget")
@@ -242,7 +242,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.groupBox_basic.setTitle(QCoreApplication.translate("MainWindow", u"\u57fa\u672c\u529f\u80fd", None))
-        self.button_enviroment.setText(QCoreApplication.translate("MainWindow", u"\u73af\u5883\u68c0\u6d4b", None))
+        self.button_enviroment.setText(QCoreApplication.translate("MainWindow", u"\u6e38\u620f\u68c0\u6d4b", None))
         self.combo_choice.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u8bf7\u9009\u62e9\u529f\u80fd", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:10pt;\">\u529f\u80fd</span></p></body></html>", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:10pt;\">\u6b21\u6570</span></p></body></html>", None))
