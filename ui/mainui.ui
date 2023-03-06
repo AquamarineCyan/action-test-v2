@@ -47,7 +47,7 @@
       <property name="title">
        <string>基本功能</string>
       </property>
-      <widget class="QPushButton" name="button_enviroment">
+      <widget class="QPushButton" name="button_game_handle">
        <property name="geometry">
         <rect>
          <x>70</x>

@@ -1,0 +1,20 @@
+# file
+*.pyc
+*.xml
+.gitattributes
+config.yaml
+desktop.ini
+Onmyoji_Python.code-workspace
+Onmyoji_Python.exe
+
+# dir
+.idle
+.idea
+build
+cache_baiguiyexing
+dist
+doc
+log
+test_code
+wiki
+.vscode
