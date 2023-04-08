@@ -1,34 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # rilun.py
-"""
-组队日轮副本
-"""
+"""组队日轮副本"""
 
-import time
 import pyautogui
 
-from utils.function import function, time_consumption_statistics
+from utils.decorator import *
+from utils.function import function
 from utils.log import log
 from utils.window import window
-
-"""
-御灵场景
-title.png
-挑战
-tiaozhan.png
-"""
 
 
 class RiLun:
     """日轮副本"""
 
-    def __init__(self):
+    def __init__(self, n: int = 0) -> None:
         self.scene_name: str = "日轮副本"
+        self.n: int = 0  # 当前次数
+        self.max: int = n  # 总次数
         self.resource_path: str = "rilun"  # 路径
-        self.resource_yuhun_path: str = "yuhun"  # 御魂路径，调用相同元素
-        self.m: int = 0  # 当前次数
-        self.n: int = None  # 总次数
+        self.resource_yuhun_path: str = "yuhun"  # 御魂路径，复用资源
+        self.resource_list: list = [  # 资源列表
+            "fighting"  # 对局进行中
+        ]
+
         self.flag_driver: bool = False  # 是否为司机（默认否）
         self.flag_passengers: bool = 2  # 组队人数
         self.flag_passenger_2: bool = False  # 队员2就位
@@ -77,7 +72,9 @@ class RiLun:
                 break
             function.random_sleep(0, 1)
 
-    @time_consumption_statistics
+    @run_in_thread
+    @time_count
+    @log_function_call
     def run(
         self,
         n: int,
@@ -89,10 +86,10 @@ class RiLun:
         self.flag_driver = flag_driver
         self.flag_passengers = flag_passengers
         time.sleep(2)
-        self.n = n
+        self.max = n
         if self.title():
-            log.num(f"0/{self.n}")
-            while self.m < self.n:
+            log.num(f"0/{self.max}")
+            while self.n < self.max:
                 self.flag_passenger_2 = False
                 self.flag_passenger_3 = False
                 # 司机
@@ -126,8 +123,8 @@ class RiLun:
                     self.flag_fighting = False
                     log.info("对局进行中", True)
                 self.finish()
-                self.m += 1
-                log.num(f"{self.m}/{self.n}")
+                self.n += 1
+                log.num(f"{self.n}/{self.max}")
                 time.sleep(2)
-        text = f"已完成 组队日轮副本 {self.m}次"
+        text = f"已完成 组队日轮副本 {self.n}次"
         log.info(text, True)

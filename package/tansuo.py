@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # tansuo.py
-"""
-探索副本-单人-暂且
-"""
+"""探索副本-单人-暂且"""
 
 from pathlib import Path
 import time
 import pyautogui
 
-
-from utils.function import function, time_consumption_statistics
+from utils.decorator import *
+from utils.function import function
 from utils.log import log
 from utils.window import window
 """
@@ -92,7 +90,9 @@ class TanSuo:
         except:
             pass
 
-    @ time_consumption_statistics
+    @run_in_thread
+    @time_count
+    @log_function_call
     def run(self):
         time.sleep(2)
         if self.title():
@@ -117,7 +117,7 @@ class TanSuoTest:
         self.resource_path = "tansuo"  # 路径
         self.n = 0  # 当前次数
         self.max = n  # 总次数
-        self.scene_list: list = [
+        self.resource_list: list = [
             "boss_finish",
             "chuzhanxiaohao",
             "fighting",
@@ -220,7 +220,9 @@ class TanSuoTest:
                         flag_title = False
                         log.warn("请检查游戏场景", True)
 
-    @time_consumption_statistics
+    @run_in_thread
+    @time_count
+    @log_function_call
     def run_0(self) -> None:
         time.sleep(2)
         if self.title():
@@ -234,14 +236,16 @@ class TanSuoTest:
                 function.result()
                 function.random_sleep(1, 2)
                 # 结算
-                function.random_finish_left_right(is_yuling=True)
+                function.random_finish_left_right(is_multiple_drops_y=True)
                 function.random_sleep(1, 3)
                 self.n += 1
                 log.num(f"{self.n}/{self.max}")
         text = f"已完成 {self.scene_name} {self.n}次"
         log.ui(text)
 
-    @time_consumption_statistics
+    @run_in_thread
+    @time_count
+    @log_function_call
     def run(self):
         log.ui("单人探索，测试功能，未完成")
         self.max = 2

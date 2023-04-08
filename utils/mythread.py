@@ -1,6 +1,6 @@
-import threading
-import time
 import ctypes
+import time
+import threading
 import win32con
 
 from PySide6.QtCore import QThread
@@ -9,16 +9,18 @@ from .event import event_thread
 
 
 class MyThread(threading.Thread):
-
-    def __init__(self, func, args=()):
-        super(MyThread, self).__init__()
+    def __init__(self, func, args=None, kwargs=None):
+        super().__init__()
         self.func = func
-        self.args = args
-        self.result = []
+        self.name = func.__name__
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
+        self.daemon = True
+        self.result = None
 
     def run(self):
         time.sleep(1)
-        self.result = self.func(*self.args)
+        self.result = self.func(*self.args, **self.kwargs)
 
     def get_result(self):
         try:
