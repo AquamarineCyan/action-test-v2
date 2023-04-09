@@ -27,18 +27,18 @@ class JieJieTuPo:
             "fangshoujilu",  # 防守记录-个人突破
             "fighting_fail",  # TODO 战斗失败
             "geren",  # 个人突破
-            "jingong", #进攻
+            "jingong",  # 进攻
             "queding",
-            "shuaxin",#刷新-个人突破
+            "shuaxin",  # 刷新-个人突破
             "title",  # 突破界面
-            "tupojilu",#突破记录-阴阳寮突破
+            "tupojilu",  # 突破记录-阴阳寮突破
             "victory",  # 攻破
-            "xunzhang_0",#勋章数0
-            "xunzhang_1",#勋章数1
-            "xunzhang_2",#勋章数2
-            "xunzhang_3",#勋章数3
-            "xunzhang_4",#勋章数4
-            "xunzhang_5",#勋章数5
+            "xunzhang_0",  # 勋章数0
+            "xunzhang_1",  # 勋章数1
+            "xunzhang_2",  # 勋章数2
+            "xunzhang_3",  # 勋章数3
+            "xunzhang_4",  # 勋章数4
+            "xunzhang_5",  # 勋章数5
             "yinyangliao"  # 阴阳寮突破
         ]
 

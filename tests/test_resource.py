@@ -46,5 +46,7 @@ def test_resource():
         assert Path(resource_path / T.resource_path).exists()
         assert isinstance(T.resource_list, list)
         for i in range(len(T.resource_list)):
-            assert Path(resource_path / T.resource_path / f"{T.resource_list[i]}.png").exists()
-            assert Path(resource_path / T.resource_path / f"{T.resource_list[i]}.png").is_file()
+            resource :Path = resource_path / T.resource_path / f"{T.resource_list[i]}.png"
+            print(resource)
+            assert resource.exists()
+            assert resource.is_file()

@@ -3,15 +3,15 @@
 # function.py
 """通用函数库"""
 
+import pyautogui
 import random
 import time
-from pathlib import Path
-import pyautogui
 
+from pathlib import Path
 
 from .config import config
+from .decorator import *
 from .log import log
-from .toast import toast
 from .window import window
 from package.xuanshangfengyin import xuanshangfengyin
 

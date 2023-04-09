@@ -12,7 +12,7 @@ class MyThread(threading.Thread):
     def __init__(self, func, args=None, kwargs=None):
         super().__init__()
         self.func = func
-        self.name = func.__name__
+        self.name = func.__qualname__
         self.args = args if args is not None else []
         self.kwargs = kwargs if kwargs is not None else {}
         self.daemon = True
@@ -22,7 +22,7 @@ class MyThread(threading.Thread):
         time.sleep(1)
         self.result = self.func(*self.args, **self.kwargs)
 
-    def get_result(self):
+    def get_result(self):  # TODO 在不阻塞主线程的情况下无法实现返回值，使用Thread.join()会阻塞ui
         try:
             return self.result
         except Exception:

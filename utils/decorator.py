@@ -22,14 +22,18 @@ from .toast import toast
 def log_function_call(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        log.info("{} is calling".format(func.__qualname__))
-        return func(*args, **kwargs)
+        log.info("{} calling".format(func.__qualname__))
+        result =  func(*args, **kwargs)
+        log.info("{} finish".format(func.__qualname__))
+        return result
     return wrapper
 
 
 def time_count(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        # 禁用按钮
+        log.is_fighting(True)
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
@@ -54,4 +58,5 @@ def run_in_thread(func):
     def wrapper(*args, **kwargs):
         t = MyThread(func=func, args=args, kwargs=kwargs)
         t.start()
+        return t.get_result()
     return wrapper
