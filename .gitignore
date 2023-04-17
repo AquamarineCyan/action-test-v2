@@ -2,19 +2,17 @@
 *.pyc
 *.xml
 .gitattributes
+build.bat
 config.yaml
-desktop.ini
-Onmyoji_Python.code-workspace
 Onmyoji_Python.exe
 
 # dir
 .idle
-.idea
+.vscode
 build
 cache*
 dist
 doc
 log
+resource/test
 test_code
-wiki
-.vscode
