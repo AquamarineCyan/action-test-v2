@@ -136,7 +136,7 @@ class TanSuoTest:
             "zidonglunhuan"
         ]
 
-    def title_simple(self) -> bool:
+    def title_single(self) -> bool:
         """场景"""
         flag_title = True  # 场景提示
         while True:

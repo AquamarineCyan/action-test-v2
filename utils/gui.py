@@ -8,7 +8,11 @@ from pathlib import Path
 from threading import Thread
 
 from PySide6.QtGui import QIcon, QPixmap, QTextCursor
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QWidget, QComboBox
+from PySide6.QtWidgets import QComboBox, QMainWindow, QMessageBox, QWidget
+
+from package import *
+from ui.mainui import Ui_MainWindow
+from ui.updateui import Ui_Form as Ui_Update_Record
 
 from .config import config
 from .decorator import *
@@ -18,9 +22,6 @@ from .mysignal import global_ms as ms
 from .update import update_record
 from .upgrade import upgrade
 from .window import window
-from ui.mainui import Ui_MainWindow
-from ui.updateui import Ui_Form as Ui_Update_Record
-from package import *
 
 
 class MainWindow(QMainWindow):
@@ -37,6 +38,8 @@ class MainWindow(QMainWindow):
         "10.限时活动",
         "11.组队日轮副本",
         # "12.探索beta"
+        "13.御魂副本beta",
+        "14.单人御魂副本beta",
     ]
     _package_ = [  # 图片素材文件夹
         "yuhun",
@@ -62,7 +65,7 @@ class MainWindow(QMainWindow):
         icon = QIcon()
         icon.addPixmap(QPixmap("buzhihuo.ico"))
         self.setWindowIcon(icon)
-        self.setWindowTitle(f"Onmyoji_Python - v{config.version}")  # 版本号显示
+        self.setWindowTitle(f"{config.application_name} - v{config.version}")  # 版本号显示
         timenow = time.strftime("%H:%M:%S")
         try:
             log._write_to_file("[START]")
@@ -78,13 +81,15 @@ class MainWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)  # 索引0，空白
         self.ui.text_print.document().setMaximumBlockCount(50)
         self.ui.label_tips.hide()
-        # setting
+        # 设置界面
         self.ui.setting_update_comboBox.addItems(
             config.config_default["更新模式"]
         )
         self.ui.setting_xuanshangfengyin_comboBox.addItems(
             config.config_default["悬赏封印"]
         )
+        self.ui.setting_update_comboBox.setCurrentText(config.config_user.get("更新模式"))
+        self.ui.setting_xuanshangfengyin_comboBox.setCurrentText(config.config_user.get("悬赏封印"))
         self.ui.label_GitHub_address.setToolTip("open with webbrower")
 
         # 自定义信号
@@ -96,7 +101,6 @@ class MainWindow(QMainWindow):
         ms.is_fighting_update.connect(self.is_fighting)
         # 完成情况文本更新
         ms.text_num_update.connect(self.text_num_update_func)
-        ms.setting_to_ui_update.connect(self.setting_to_ui_update_func)
         # 退出程序
         ms.sys_exit_update.connect(self.exit)
 
@@ -136,7 +140,6 @@ class MainWindow(QMainWindow):
             for item in config.config_user.keys():
                 log.info(f"{item} : {config.config_user[item]}")
         log.ui("未正确使用所产生的一切后果自负，保持您的肝度与日常无较大差距")
-        window.get_game_window_handle()  # 获取游戏窗口信息
         if self._check_enviroment():
             log.ui("环境完整")
             self.ui.combo_choice.setEnabled(True)
@@ -151,7 +154,10 @@ class MainWindow(QMainWindow):
         log.clean_up()
         upgrade.check_latest()
         # 悬赏封印
-        xuanshangfengyin.xuanshangfengyin.judge()
+        if config.config_user.get("悬赏封印") == "关闭":
+            xuanshangfengyin.xuanshangfengyin.flag_work = False
+        else:
+            xuanshangfengyin.xuanshangfengyin.judge()
 
     def qmessagbox_update_func(self, level: str, msg: str) -> None:
         match level:
@@ -215,11 +221,6 @@ class MainWindow(QMainWindow):
         """
         self.ui.text_num.setText(text)
 
-    def setting_to_ui_update_func(self, key: str, text: str) -> None:
-        match key:
-            case "悬赏封印":
-                self.ui.setting_xuanshangfengyin_comboBox.setCurrentText(text)
-
     @log_function_call
     def _check_enviroment(self) -> bool:
         """环境检测
@@ -228,7 +229,6 @@ class MainWindow(QMainWindow):
             bool: 是否完成
         """
         log.info("环境检测中...")
-        handle_coor = window.handle_coor
         # log检测
         if not log.init():
             ms.qmessagbox_update.emit("ERROR", "创建log目录失败，请重试！")
@@ -243,18 +243,8 @@ class MainWindow(QMainWindow):
             log.error("资源丢失", True)
             return False
         # 游戏窗口检测
-        if handle_coor == (0, 0, 0, 0):
-            log.error("未打开游戏")
-            ms.qmessagbox_update.emit("ERROR", "请打开游戏！")
+        if not self.check_game_handle():
             return False
-        if handle_coor[0] < -9 or handle_coor[1] < 0 or handle_coor[2] < 0 or handle_coor[3] < 0:
-            log.error("未前置游戏窗口")
-            ms.qmessagbox_update.emit("ERROR", "请前置游戏窗口！")
-            return False
-        # 环境完整
-        if handle_coor[2] - handle_coor[0] != window.absolute_window_width and \
-                handle_coor[3] - handle_coor[1] != window.absolute_window_height:
-            ms.qmessagbox_update.emit("question", "强制缩放")
         return True
 
     @log_function_call
@@ -314,9 +304,12 @@ class MainWindow(QMainWindow):
     def setting_xuanshangfengyin_comboBox_func(self) -> None:
         """设置-悬赏封印-更改"""
         text = self.ui.setting_xuanshangfengyin_comboBox.currentText()
+        if text == "关闭":
+            log.ui("成功关闭悬赏封印，重启程序后生效")
         log.info(f"设置项：悬赏封印已更改为 {text}")
         config.config_user_changed("悬赏封印", text)
-
+    
+    @log_function_call
     def check_game_handle(self) -> bool:
         """游戏窗口检测
 
@@ -324,6 +317,7 @@ class MainWindow(QMainWindow):
             bool: 检测结果
         """
         log.info("游戏窗口检测中...")
+        # 获取游戏窗口信息
         window.get_game_window_handle()
         handle_coor = window.handle_coor
         if handle_coor == (0, 0, 0, 0):
@@ -349,7 +343,6 @@ class MainWindow(QMainWindow):
         text = self.ui.combo_choice.currentText()
         self.ui.button_start.setEnabled(True)
         self.ui.spinB_num.setEnabled(True)
-        # self.is_fighting_yuhun(False)
         self.ui.stackedWidget.setCurrentIndex(0)  # 索引0，空白
         if text == self._list_function[0]:
             # 1.组队御魂副本
@@ -359,9 +352,12 @@ class MainWindow(QMainWindow):
             # 默认值
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 200)
-            # self.is_fighting_yuhun(True)
             self.ui.button_driver_False.setChecked(True)
             self.ui.button_passengers_2.setChecked(True)
+            # FIXME test
+            self.ui.button_mode_team.hide()
+            self.ui.button_mode_single.hide()
+            self.ui.label_mode.hide()
         elif text == self._list_function[1]:
             # 2.组队永生之海副本
             self._choice = 2
@@ -370,7 +366,6 @@ class MainWindow(QMainWindow):
             # 默认值
             self.ui.spinB_num.setValue(30)
             self.ui.spinB_num.setRange(1, 100)
-            # self.is_fighting_yuhun(True)
             self.ui.button_driver_False.setChecked(True)
             self.ui.button_passengers_2.setChecked(True)
         elif text == self._list_function[2]:
@@ -444,8 +439,24 @@ class MainWindow(QMainWindow):
             self.ui.button_passengers_2.setChecked(True)
         elif text == self._list_function[11]:
             # 12.探索beta
-            self._choice = 12
-            log.warn("测试功能", True)
+            # self._choice = 12
+            # log.warn("测试功能", True)
+            # 13.御魂副本beta
+            self._choice = 13
+            log.warn("测试功能，默认组队，提高识别效率\n请确保该设备上已手动锁定邀请提示的“不再提醒”", True)
+            self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
+            # 默认值
+            self.ui.spinB_num.setValue(1)
+            self.ui.spinB_num.setRange(1, 200)
+            self.ui.button_driver_False.setChecked(True)
+            self.ui.button_passengers_2.setChecked(True)
+        elif text == self._list_function[12]:
+            self._choice = 14
+            log.warn("测试功能，单人御魂副本，提高识别效率", True)
+            self.ui.stackedWidget.setCurrentIndex(0)
+            # 默认值
+            self.ui.spinB_num.setValue(1)
+            self.ui.spinB_num.setRange(1, 200)
 
     def start_stop(self) -> None:
         """开始&停止按钮"""
@@ -528,6 +539,23 @@ class MainWindow(QMainWindow):
                     rilun.RiLun(n=_n, flag_driver=_flag_driver, flag_passengers=_flag_passengers).run()
                 case 12:
                     tansuo.TanSuo().run()
+                case 13:
+                    driver = self.ui.buttonGroup_driver.checkedButton().text()
+                    if driver == "否":
+                        _flag_driver = False
+                    else:
+                        _flag_driver = True
+                    _flag_drop_statistics = self.ui.button_yuhun_drop_statistics.isChecked()
+                    _flag_passengers = int(self.ui.buttonGroup_passengers.checkedButton().text())
+                    # 组队挑战
+                    yuhun.YuHunTest(n=_n,
+                                    flag_driver=_flag_driver,
+                                    flag_passengers=_flag_passengers,
+                                    flag_drop_statistics=_flag_drop_statistics
+                                    ).run_team()
+                case 14:
+                    # 单人挑战
+                    yuhun.YuHunTest(n=_n).run_single()
 
         def stop() -> None:  # TODO unable to use
             """停止函数"""
@@ -558,25 +586,6 @@ class MainWindow(QMainWindow):
         self.ui.button_driver_True.setEnabled(not flag)
         self.ui.button_passengers_2.setEnabled(not flag)
         self.ui.button_passengers_3.setEnabled(not flag)
-
-    def is_fighting_yuhun(self, flag: bool):
-        """初始化组队御魂副本默认配置，显示/隐藏其他控件"""
-        if flag:
-            self.ui.label_driver.show()
-            self.ui.button_driver_False.show()
-            self.ui.button_driver_True.show()
-            self.ui.label_passengers.show()
-            self.ui.button_passengers_2.show()
-            self.ui.button_passengers_3.show()
-            self.ui.button_driver_False.setChecked(True)
-            self.ui.button_passengers_2.setChecked(True)
-        else:
-            self.ui.label_driver.hide()
-            self.ui.button_driver_False.hide()
-            self.ui.button_driver_True.hide()
-            self.ui.label_passengers.hide()
-            self.ui.button_passengers_2.hide()
-            self.ui.button_passengers_3.hide()
 
     def tips_yuhun_driver(self):
         if self.ui.buttonGroup_driver.checkedButton().text() == "是":

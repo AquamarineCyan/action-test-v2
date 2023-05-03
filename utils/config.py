@@ -3,17 +3,21 @@
 # config.py
 """配置"""
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 from .log import log
 from .mysignal import global_ms as ms
 
 
 class Config():
-    def __init__(self) -> None:
-        self.version: str = "1.7.2"
-        self.exe_name: str = "Onmyoji_Python.exe"
+    """配置"""
+
+    def __init__(self):
+        self.application_name: str = "Onmyoji_Python"
+        self.exe_name: str = f"{self.application_name}.exe"
+        self.version: str = "1.7.3"
         self.application_path: Path = Path.cwd()
         if Path(self.application_path / "resource").is_dir():
             self.resource_path: Path = self.application_path / "resource"
@@ -21,10 +25,8 @@ class Config():
             self.resource_path: Path = self.application_path / "pic"
         self.config_yaml_path: Path = self.application_path/"config.yaml"
         self.config_default: dict = {
-            # "更新模式": ["GitHub", "Gitee"],
-            "更新模式": ["GitHub"],  # TODO Gitee
-            # "悬赏封印": ["accept", "refuse", "ignore"]
-            "悬赏封印": ["接受", "拒绝", "忽略"]
+            "更新模式": ["ghproxy", "GitHub"],  # TODO 修改更新优先级
+            "悬赏封印": ["接受", "拒绝", "忽略", "关闭"],
         }
         self.config_user: dict = None
 
@@ -96,8 +98,7 @@ class Config():
             dict: 符合配置要求的字典
         """
         data, self.update_mode = self.dict_set_default(data, "更新模式")
-        data, self.xuanshangfengyin_receive = self.dict_set_default(
-            data, "悬赏封印")
+        data, self.xuanshangfengyin_mode = self.dict_set_default(data, "悬赏封印")
         return data
 
     def dict_set_default(self, data: dict, key: str) -> tuple[dict, str]:

@@ -49,7 +49,7 @@ class RiLun:
     def finish(self) -> None:
         """结算"""
         while True:
-            x, y = function.get_coor_info_picture("victory_gu.png")
+            x, y = function.get_coor_info_picture("victory_gu.png")  # TODO change "victory_gu" to "victory"
             if x != 0 and y != 0:
                 log.ui("结算中")
                 break
