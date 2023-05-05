@@ -93,7 +93,7 @@ class Function:
         if Path(config.resource_path / _file).exists():
             return _file
         else:
-            log.warn(f"no such file {_file}")
+            log.warn(f"no such file {_file}", False)
 
         # TODO 旧代码，使用新函数`get_coor_info()`
     def get_coor_info_picture(self, file: str) -> tuple[int, int]:

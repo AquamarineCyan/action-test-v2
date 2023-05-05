@@ -548,14 +548,14 @@ class MainWindow(QMainWindow):
                     _flag_drop_statistics = self.ui.button_yuhun_drop_statistics.isChecked()
                     _flag_passengers = int(self.ui.buttonGroup_passengers.checkedButton().text())
                     # 组队挑战
-                    yuhun.YuHunTest(n=_n,
+                    yuhun.YuHunTeam(n=_n,
                                     flag_driver=_flag_driver,
                                     flag_passengers=_flag_passengers,
                                     flag_drop_statistics=_flag_drop_statistics
-                                    ).run_team()
+                                    ).run()
                 case 14:
                     # 单人挑战
-                    yuhun.YuHunTest(n=_n).run_single()
+                    yuhun.YuHunSingle(n=_n).run()
 
         def stop() -> None:  # TODO unable to use
             """停止函数"""
