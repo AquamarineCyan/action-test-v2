@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # yuhun.py
-"""组队御魂副本"""
+"""御魂副本"""
 
 import pyautogui
 
 from utils.coordinate import Coor
 from utils.decorator import *
-from utils.function import function
+from utils.function import (check_scene_multiple_once, click, function,
+                            get_coor_info)
 from utils.log import log
 from utils.window import window
 
@@ -57,11 +58,11 @@ class YuHun:
             bool: 结算结果
         """
         while True:
-            coor = function.get_coor_info("victory_gu")  # TODO change "victory_gu" to "victory"
+            coor = get_coor_info("victory_gu")  # TODO change "victory_gu" to "victory"
             if coor.is_effective:
                 log.ui("胜利")
                 return True
-            coor = function.get_coor_info("fail")
+            coor = get_coor_info("fail")
             if coor.is_effective:
                 log.ui("失败")
                 return False
@@ -113,20 +114,25 @@ class YuHunTeam(YuHun):
         # 是否3人组队
         if self.flag_passengers == 3:
             while True:
-                coor = function.get_coor_info(f"{self.resource_path}/passenger_3")
+                coor = get_coor_info(f"{self.resource_path}/passenger_3")
                 if coor.is_zero:
                     log.ui("队员3就位")
                     return
         else:
             while True:
-                coor = function.get_coor_info(f"{self.resource_path}/passenger_2")
+                coor = get_coor_info(f"{self.resource_path}/passenger_2")
                 if coor.is_zero:
                     log.ui("队员2就位")
                     return
 
     @log_function_call
     def finish(self):
-        """结束"""
+        """结束
+
+        掉落物大体分为2种情况：
+        1.正常情况，达摩蛋能被识别
+        2.掉落过多情况（指神罚一排紫蛇皮），达摩蛋被遮挡，此时贪吃鬼必定（可能）出现
+        """
         self.result()
         function.random_sleep(0.4, 0.8)
         # 结算
@@ -136,22 +142,16 @@ class YuHunTeam(YuHun):
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         pyautogui.doubleClick()
         while True:
-            # 未检测到图像，退出循环
-            coor1 = function.get_coor_info("finish")
-            coor2 = function.get_coor_info("tanchigui")
-            coor3 = function.get_coor_info(f"{self.resource_path}/victory_2000")
-            coor4 = function.get_coor_info(f"{self.resource_path}/finish_damage")
-            coor5 = function.get_coor_info(f"{self.resource_path}/finish_damage_2000")
-            coor6 = function.get_coor_info(f"{self.resource_path}/finish_damage_shenfa")
             # 检测到任一图像
-            if coor1.is_effective or coor2.is_effective or coor3.is_effective or coor4.is_effective or coor5.is_effective or coor6.is_effective:
+            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
                     function.screenshot("cache_yuhun")
                     _flag_screenshot = False
-                pyautogui.click()
+                click()
                 function.random_sleep(0.6, 1)
-            # 所有图像都未检测到
-            elif coor1.is_zero and coor2.is_zero and coor3.is_zero and coor4.is_zero and coor5.is_zero and coor6.is_zero:
+            # 所有图像都未检测到，退出循环
+            elif coor.is_zero:
                 log.ui("结束")
                 return
 
@@ -176,7 +176,7 @@ class YuHunTeam(YuHun):
         log.num(f"0/{self.max}")
         while self.n < self.max:
             _resource_list = _g_resource_list if _resource_list == None else _resource_list
-            scene, (x, y) = function.check_scene_multiple_once(_resource_list, self.resource_path)
+            scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
             if scene:
                 log.info(f"当前场景: {scene}")
             match scene:
@@ -198,7 +198,7 @@ class YuHunTeam(YuHun):
                 case "accept_invitation":
                     # TODO 新设备第一次接受邀请会有弹窗，需手动勾选“不再提醒”
                     log.ui("接受邀请")
-                    pyautogui.click(x, y)
+                    click(coor)
                 case _:
                     if _flag_title_msg:
                         log.warn("请检查游戏场景")
@@ -228,14 +228,14 @@ class YuHunSingle(YuHun):
             "fighting",  # 魂土进行中
             "fighting_linshuanghanxue",  # 凛霜寒雪战斗主题
             "fighting_shenfa",  # 神罚战斗场景
-            "finish_damage",  # 结束特征图像
-            "finish_damage_2000",  # 结束特征图像-鎏金圣域
-            "finish_damage_shenfa",  # 结束特征图像-神罚
+            # "finish_damage",  # 结束特征图像
+            # "finish_damage_2000",  # 结束特征图像-鎏金圣域
+            # "finish_damage_shenfa",  # 结束特征图像-神罚
         ]
         self.flag_drop_statistics: bool = flag_drop_statistics  # 是否开启掉落统计
 
     @log_function_call
-    def finish(self):  # FIXME
+    def finish_fast(self):  # FIXME
         """结束"""
         self.result()
         function.random_sleep(0.4, 0.8)
@@ -246,22 +246,42 @@ class YuHunSingle(YuHun):
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         pyautogui.doubleClick()
         while True:
-            # 未检测到图像，退出循环
-            coor1 = function.get_coor_info("finish")
-            coor2 = function.get_coor_info("tanchigui")
-            coor3 = function.get_coor_info(f"{self.resource_path}/victory_2000")
-            coor4 = function.get_coor_info(f"{self.resource_path}/finish_damage")
-            coor5 = function.get_coor_info(f"{self.resource_path}/finish_damage_2000")
-            coor6 = function.get_coor_info(f"{self.resource_path}/finish_damage_shenfa")
             # 检测到任一图像
-            if coor1.is_effective or coor2.is_effective or coor3.is_effective or coor4.is_effective or coor5.is_effective or coor6.is_effective:
+            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
                     function.screenshot("cache_yuhun")
                     _flag_screenshot = False
-                pyautogui.click()
+                click()
                 function.random_sleep(0.6, 1)
-            # 所有图像都未检测到
-            elif coor1.is_zero and coor2.is_zero and coor3.is_zero and coor4.is_zero and coor5.is_zero and coor6.is_zero:
+            # 所有图像都未检测到，退出循环
+            elif coor.is_zero:
+                log.ui("结束")
+                return
+
+    def finish_slow(self):
+        """
+        结束 等待自动掉落
+        """
+        self.result()
+        function.random_sleep(0.4, 0.8)
+        # 结算
+        x, y = function.random_finish_left_right(False, is_multiple_drops_x=True)
+        coor = Coor(x, y)
+        _flag_screenshot = True
+        pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
+        # pyautogui.doubleClick()
+        while True:
+            # 检测到任一图像
+            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            if coor.is_effective:
+                if _flag_screenshot and self.flag_drop_statistics:
+                    function.screenshot("cache_yuhun")
+                    _flag_screenshot = False
+                click()
+                function.random_sleep(0.6, 1)
+            # 所有图像都未检测到，退出循环
+            elif coor.is_zero:
                 log.ui("结束")
                 return
 
@@ -301,7 +321,7 @@ class YuHunSingle(YuHun):
                     _flag_title_msg = False
                 case "fighting" | "fighting_linshuanghanxue" | "fighting_shenfa":
                     log.ui("对局进行中")
-                    self.finish()
+                    self.finish_slow()
                     self.n += 1
                     log.num(f"{self.n}/{self.max}")
                     _resource_list = None

@@ -3,9 +3,10 @@
 # yeyuanhuo.py
 """业原火副本"""
 
-from utils.coordinate import Coor
 from utils.decorator import *
-from utils.function import function
+from utils.function import (check_scene_multiple_once,
+                            check_scene_multiple_while,
+                            function)
 from utils.log import log
 
 
@@ -28,7 +29,7 @@ class YeYuanHuo:
     @log_function_call
     def title(self) -> bool:
         """场景"""
-        function.check_scene_multiple_while(self.resource_list, self.resource_path, text="请检查游戏场景")
+        check_scene_multiple_while(self.resource_list, self.resource_path, text="请检查游戏场景")
         return True
 
     @log_function_call
@@ -43,14 +44,14 @@ class YeYuanHuo:
         if self.title():
             log.num(f"0/{self.max}")
             while self.n < self.max:
-                scene, (x, y) = function.check_scene_multiple_once(self.resource_list, self.resource_path)
-                if Coor(x, y).is_effective:
+                scene, coor = check_scene_multiple_once(self.resource_list, self.resource_path)
+                if coor.is_effective:
                     match scene:
                         case "title":
                             self.start()
                             function.random_sleep(self.fast_time, self.fast_time+1)
                         case "start":
-                            function.click(x, y)
+                            function.click(coor.x, coor.y)
                             function.random_sleep(self.fast_time, self.fast_time+1)
                 result = function.result_once()
                 if result:
