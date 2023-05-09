@@ -5,8 +5,7 @@
 
 from utils.decorator import *
 from utils.function import (check_scene_multiple_once,
-                            check_scene_multiple_while,
-                            function)
+                            check_scene_multiple_while, function, result_once)
 from utils.log import log
 
 
@@ -53,7 +52,7 @@ class YeYuanHuo:
                         case "start":
                             function.click(coor.x, coor.y)
                             function.random_sleep(self.fast_time, self.fast_time+1)
-                result = function.result_once()
+                result = result_once()
                 if result:
                     self.n += 1
                     log.num(f"{self.n}/{self.max}")

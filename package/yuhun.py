@@ -5,10 +5,9 @@
 
 import pyautogui
 
-from utils.coordinate import Coor
 from utils.decorator import *
-from utils.function import (check_scene_multiple_once, click, function,
-                            get_coor_info)
+from utils.function import (check_click, check_scene_multiple_once, click, finish_random_left_right, function,
+                              get_coor_info, random_sleep, screenshot)
 from utils.log import log
 from utils.window import window
 
@@ -46,9 +45,9 @@ class YuHun:
     def start(self, mode: str = None) -> None:
         """挑战"""
         if mode == "team":
-            function.judge_click(f"{self.resource_path}/start_team")
-        if mode == "single":
-            function.judge_click(f"{self.resource_path}/start_single")
+            check_click(f"{self.resource_path}/start_team")
+        elif mode == "single":
+            check_click(f"{self.resource_path}/start_single")
 
     @log_function_call
     def result(self) -> bool:
@@ -134,10 +133,9 @@ class YuHunTeam(YuHun):
         2.掉落过多情况（指神罚一排紫蛇皮），达摩蛋被遮挡，此时贪吃鬼必定（可能）出现
         """
         self.result()
-        function.random_sleep(0.4, 0.8)
+        random_sleep(0.4, 0.8)
         # 结算
-        x, y = function.random_finish_left_right(False, is_multiple_drops_x=True)
-        coor = Coor(x, y)
+        coor = finish_random_left_right(False, is_multiple_drops_x=True)
         _flag_screenshot = True
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         pyautogui.doubleClick()
@@ -146,10 +144,10 @@ class YuHunTeam(YuHun):
             scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
-                    function.screenshot("cache_yuhun")
+                    screenshot("cache_yuhun")
                     _flag_screenshot = False
                 click()
-                function.random_sleep(0.6, 1)
+                random_sleep(0.6, 1)
             # 所有图像都未检测到，退出循环
             elif coor.is_zero:
                 log.ui("结束")
@@ -175,7 +173,7 @@ class YuHunTeam(YuHun):
 
         log.num(f"0/{self.max}")
         while self.n < self.max:
-            _resource_list = _g_resource_list if _resource_list == None else _resource_list
+            _resource_list = _g_resource_list if _resource_list is None else _resource_list
             scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
             if scene:
                 log.info(f"当前场景: {scene}")
@@ -238,10 +236,9 @@ class YuHunSingle(YuHun):
     def finish_fast(self):  # FIXME
         """结束"""
         self.result()
-        function.random_sleep(0.4, 0.8)
+        random_sleep(0.4, 0.8)
         # 结算
-        x, y = function.random_finish_left_right(False, is_multiple_drops_x=True)
-        coor = Coor(x, y)
+        coor = finish_random_left_right(False, is_multiple_drops_x=True)
         _flag_screenshot = True
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         pyautogui.doubleClick()
@@ -250,10 +247,10 @@ class YuHunSingle(YuHun):
             scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
-                    function.screenshot("cache_yuhun")
+                    screenshot("cache_yuhun")
                     _flag_screenshot = False
                 click()
-                function.random_sleep(0.6, 1)
+                random_sleep(0.6, 1)
             # 所有图像都未检测到，退出循环
             elif coor.is_zero:
                 log.ui("结束")
@@ -264,10 +261,9 @@ class YuHunSingle(YuHun):
         结束 等待自动掉落
         """
         self.result()
-        function.random_sleep(0.4, 0.8)
+        random_sleep(0.4, 0.8)
         # 结算
-        x, y = function.random_finish_left_right(False, is_multiple_drops_x=True)
-        coor = Coor(x, y)
+        coor = finish_random_left_right(False, is_multiple_drops_x=True)
         _flag_screenshot = True
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         # pyautogui.doubleClick()
@@ -276,10 +272,10 @@ class YuHunSingle(YuHun):
             scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
-                    function.screenshot("cache_yuhun")
+                    screenshot("cache_yuhun")
                     _flag_screenshot = False
                 click()
-                function.random_sleep(0.6, 1)
+                random_sleep(0.6, 1)
             # 所有图像都未检测到，退出循环
             elif coor.is_zero:
                 log.ui("结束")
@@ -304,18 +300,18 @@ class YuHunSingle(YuHun):
 
         log.num(f"0/{self.max}")
         while self.n < self.max:
-            _resource_list = _g_resource_list if _resource_list == None else _resource_list
-            scene, (x, y) = function.check_scene_multiple_once(_resource_list, self.resource_path)
+            _resource_list = _g_resource_list if _resource_list is None else _resource_list
+            scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
             if scene:
                 log.ui(f"scene: {scene}")
             match scene:
                 case "title_10" | "title_11" | "title_12":
                     self.start("single")
-                    function.random_sleep(self.fast_time, self.fast_time+1)
+                    random_sleep(self.fast_time, self.fast_time+1)
                     _flag_title_msg = False
                 case "start_single":
-                    function.click(x, y)
-                    function.random_sleep(self.fast_time, self.fast_time+1)
+                    click()
+                    random_sleep(self.fast_time, self.fast_time+1)
                     # 只判断下列图像，提高效率
                     _resource_list = ["fighting", "fighting_linshuanghanxue", "fighting_shenfa"]
                     _flag_title_msg = False
