@@ -6,8 +6,17 @@
 import pyautogui
 
 from utils.decorator import *
-from utils.function import (check_click, check_scene_multiple_once, click, finish_random_left_right, function,
-                              get_coor_info, random_sleep, screenshot)
+from utils.function import (
+    RESOURCE_FIGHT_PATH,
+    check_click,
+    check_scene_multiple_once,
+    click,
+    finish_random_left_right,
+    is_passengers_on_position,
+    random_sleep,
+    result,
+    screenshot
+)
 from utils.log import log
 from utils.window import window
 
@@ -49,33 +58,18 @@ class YuHun:
         elif mode == "single":
             check_click(f"{self.resource_path}/start_single")
 
-    @log_function_call
-    def result(self) -> bool:
-        """结果判断
-
-        返回:
-            bool: 结算结果
-        """
-        while True:
-            coor = get_coor_info("victory_gu")  # TODO change "victory_gu" to "victory"
-            if coor.is_effective:
-                log.ui("胜利")
-                return True
-            coor = get_coor_info("fail")
-            if coor.is_effective:
-                log.ui("失败")
-                return False
-
 
 class YuHunTeam(YuHun):
     """组队御魂副本"""
 
     @log_function_call
-    def __init__(self,
-                 n: int = 0,
-                 flag_driver: bool = False,
-                 flag_passengers: int = 2,
-                 flag_drop_statistics: bool = False):
+    def __init__(
+        self,
+        n: int = 0,
+        flag_driver: bool = False,
+        flag_passengers: int = 2,
+        flag_drop_statistics: bool = False
+    ) -> None:
         super().__init__()
         """组队御魂副本
 
@@ -107,24 +101,6 @@ class YuHunTeam(YuHun):
         self.flag_drop_statistics: bool = flag_drop_statistics  # 是否开启掉落统计
 
     @log_function_call
-    def is_passengers_on_position(self):
-        """司机"""
-        log.ui("等待队员")
-        # 是否3人组队
-        if self.flag_passengers == 3:
-            while True:
-                coor = get_coor_info(f"{self.resource_path}/passenger_3")
-                if coor.is_zero:
-                    log.ui("队员3就位")
-                    return
-        else:
-            while True:
-                coor = get_coor_info(f"{self.resource_path}/passenger_2")
-                if coor.is_zero:
-                    log.ui("队员2就位")
-                    return
-
-    @log_function_call
     def finish(self):
         """结束
 
@@ -132,11 +108,13 @@ class YuHunTeam(YuHun):
         1.正常情况，达摩蛋能被识别
         2.掉落过多情况（指神罚一排紫蛇皮），达摩蛋被遮挡，此时贪吃鬼必定（可能）出现
         """
-        self.result()
+        _flag_screenshot = True
+        _flag_first = True
+        result()
         random_sleep(0.4, 0.8)
         # 结算
         coor = finish_random_left_right(False, is_multiple_drops_x=True)
-        _flag_screenshot = True
+
         pyautogui.moveTo(coor.x + window.window_left, coor.y + window.window_top, duration=0.25)
         pyautogui.doubleClick()
         while True:
@@ -147,8 +125,11 @@ class YuHunTeam(YuHun):
                     screenshot("cache_yuhun")
                     _flag_screenshot = False
                 click()
+                _flag_first = False
                 random_sleep(0.6, 1)
             # 所有图像都未检测到，退出循环
+            elif _flag_first:
+                continue
             elif coor.is_zero:
                 log.ui("结束")
                 return
@@ -181,7 +162,7 @@ class YuHunTeam(YuHun):
                 case "xiezhanduiwu":
                     log.ui('组队界面准备中')
                     if self.flag_driver:
-                        self.is_passengers_on_position()
+                        is_passengers_on_position(self.flag_passengers)
                         self.start("team")
                     # 只判断下列图像，提高效率
                     _resource_list = ["fighting", "fighting_linshuanghanxue", "fighting_shenfa"]
@@ -235,7 +216,7 @@ class YuHunSingle(YuHun):
     @log_function_call
     def finish_fast(self):  # FIXME
         """结束"""
-        self.result()
+        result()
         random_sleep(0.4, 0.8)
         # 结算
         coor = finish_random_left_right(False, is_multiple_drops_x=True)
@@ -244,7 +225,11 @@ class YuHunSingle(YuHun):
         pyautogui.doubleClick()
         while True:
             # 检测到任一图像
-            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            scene, coor = check_scene_multiple_once([
+                f"{RESOURCE_FIGHT_PATH}/finish",
+                f"{self.resource_path}/finish_2000",
+                f"{RESOURCE_FIGHT_PATH}/tanchigui"
+            ])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
                     screenshot("cache_yuhun")
@@ -260,7 +245,7 @@ class YuHunSingle(YuHun):
         """
         结束 等待自动掉落
         """
-        self.result()
+        result()
         random_sleep(0.4, 0.8)
         # 结算
         coor = finish_random_left_right(False, is_multiple_drops_x=True)
@@ -269,7 +254,11 @@ class YuHunSingle(YuHun):
         # pyautogui.doubleClick()
         while True:
             # 检测到任一图像
-            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            scene, coor = check_scene_multiple_once([
+                f"{RESOURCE_FIGHT_PATH}/finish",
+                f"{self.resource_path}/finish_2000",
+                f"{RESOURCE_FIGHT_PATH}/tanchigui"
+            ])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
                     screenshot("cache_yuhun")

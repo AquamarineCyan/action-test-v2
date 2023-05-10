@@ -422,7 +422,8 @@ class MainWindow(QMainWindow):
             self._choice = 10
             log.ui(
                 "适用于限时活动及其他连点，请提前确保阵容完好并锁定\
-                可替换resource/huodong下的title.png、tiaozhan.png"
+                可替换resource/huodong下的title.png、start.png\
+                当前为百面归一"
             )
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
@@ -518,7 +519,8 @@ class MainWindow(QMainWindow):
                     baiguiyexing.BaiGuiYeXing(n=_n).run()
                 case 10:
                     # 10.限时活动
-                    huodong.HuoDong(n=_n).run()
+                    # huodong.HuoDong(n=_n).run()
+                    huodong.BaiMianGuiYi(n=_n).run()
                 case 11:
                     # 11.组队日轮副本
                     # 是否司机（默认否）

@@ -17,6 +17,9 @@ from .decorator import *
 from .log import log
 from .window import window
 
+RESOURCE_FIGHT_PATH = config.resource_path / "fight"
+"""通用战斗资源路径"""
+
 
 class Function:
     """通用函数"""
@@ -148,6 +151,22 @@ class Function:
 function = Function()
 
 
+class FightSource:
+
+    def __init__(self):
+        self.resource_path: str = "fight"  # 路径
+        self.resource_list: list = [  # 资源列表
+            "passenger_2",  # 队员2
+            "passenger_3",  # 队员3
+            "victory",  # 成功
+            "fail",  # 失败
+            "finish",  # 结束
+            "tanchigui",  # 贪吃鬼
+            "accept_invitation",  # 接受邀请
+            "zhunbei",  # 准备
+        ]
+
+
 def random_num(minimum: int | float, maximum: int | float) -> float:
     """返回给定范围的随机值        
 
@@ -194,7 +213,7 @@ def random_sleep(minimum: int | float, maximum: int | float) -> None:
     time.sleep(_sleep_time)
 
 
-def _image_file_format(file: Path | str) -> str:
+def image_file_format(file: Path | str) -> str:
     """补全图像文件后缀并转为`str`
 
     `pyautogui` need file path be `str`
@@ -222,12 +241,12 @@ def get_coor_info(file: Path | str) -> Coor:
     """图像识别，返回图像的全屏随机坐标
 
     参数:
-        file (str): 图像名称
+        file (Path | str): 图像名称
 
     返回:
         Coor: 成功，返回图像的全屏随机坐标；失败，返回(0,0)
     """
-    _file_name = _image_file_format(config.resource_path / file)
+    _file_name = image_file_format(config.resource_path / file)
     log.info(_file_name)
     # 等待悬赏封印判定
     if xuanshangfengyin.is_working():
@@ -293,7 +312,9 @@ def check_scene_multiple_once(scene: dict | list, resource_path: str = None) -> 
                 return str(value), coor
     elif isinstance(scene, list):
         for item in scene:
-            coor = get_coor_info(f"{resource_path}/{item}")
+            # 如果没传路径，说明文件名自带路径
+            _file = item if resource_path is None else f"{resource_path}/{item}"
+            coor = get_coor_info(_file)
             if coor.is_effective:
                 return str(item), coor
         return None, Coor(0, 0)
@@ -319,9 +340,28 @@ def check_scene_multiple_while(scene: dict | list = None, resource_path: str = N
             return scene, coor
         elif _flag:
             _flag = False
-            log.warn(_text, True)
+            log.warn(_text)
 
 
+@log_function_call
+def is_passengers_on_position(flag_passengers: int = 2):
+    """队员就位"""
+    log.ui("等待队员")
+    while True:
+        # 是否3人组队
+        if flag_passengers == 3:
+            coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/passenger_3")
+            if coor.is_zero:
+                log.ui("队员3就位")
+                return
+        else:
+            coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/passenger_2")
+            if coor.is_zero:
+                log.ui("队员2就位")
+                return
+
+
+@log_function_call
 def result() -> bool:
     """结果判断
 
@@ -329,11 +369,11 @@ def result() -> bool:
         bool: Success or Fail
     """
     while True:
-        coor = get_coor_info("victory_gu")  # TODO `victory_gu` need rename as `victory`
+        coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/victory")
         if coor.is_effective:
             log.ui("胜利")
             return True
-        coor = get_coor_info("fail")
+        coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/fail")  # TODO `fail` 需要更新素材
         if coor.is_effective:
             log.ui("失败")
             return False
@@ -345,11 +385,11 @@ def result_once() -> bool | None:
     返回:
         bool | None: Success or Fail or None
     """
-    coor = get_coor_info("victory_gu.png")  # TODO `victory_gu` need rename as `victory`
+    coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/victory")
     if coor.is_effective:
         log.ui("胜利")
         return True
-    coor = get_coor_info("fail.png")
+    coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/fail")
     if coor.is_effective:
         log.ui("失败")
         return False
@@ -375,11 +415,11 @@ def finish() -> bool:
         bool: Success or Fail
     """
     while True:
-        coor = get_coor_info("victory")  # TODO `victory` need rename as `finish`
+        coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/finish")
         if coor.is_effective:
             log.ui("胜利")
             return True
-        coor = get_coor_info("fail")
+        coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/fail")
         if coor.is_effective:
             log.ui("失败")
             return False
@@ -447,7 +487,7 @@ def click(coor: Coor = None, dura: float = 0.5, sleeptime: float = 0) -> None:
         pyautogui.easeInOutQuad
     ]
     random.seed(time.time_ns())
-    x, y = pyautogui.Point() if coor is None else (coor.x, coor.y)
+    x, y = pyautogui.position() if coor is None else (coor.x, coor.y)
     pyautogui.moveTo(x, y, duration=dura, tween=random.choice(list_tween))
     log.info(f"complete for (x,y): ({x},{y})")
     pyautogui.click()
