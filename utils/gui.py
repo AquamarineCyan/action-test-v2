@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 # gui.py
 
+import contextlib
 import sys
 import time
 from pathlib import Path
 from threading import Thread
 
 from PySide6.QtGui import QIcon, QPixmap, QTextCursor
-from PySide6.QtWidgets import QComboBox, QMainWindow, QMessageBox, QWidget
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QWidget
 
 from package import *
 from ui.mainui import Ui_MainWindow
@@ -38,8 +39,6 @@ class MainWindow(QMainWindow):
         "10.限时活动",
         "11.组队日轮副本",
         # "12.探索beta"
-        # "13.御魂副本beta",
-        # "14.单人御魂副本beta",
     ]
     _package_ = [  # 图片素材文件夹
         "yuhun",
@@ -67,12 +66,9 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(icon)
         self.setWindowTitle(f"{config.application_name} - v{config.version}")  # 版本号显示
         timenow = time.strftime("%H:%M:%S")
-        try:
+        with contextlib.suppress(Exception):
             log._write_to_file("[START]")
             log._write_to_file(f"{timenow} [VERSION] {config.version}")
-        except:
-            pass
-
         # 初始化控件
         self.ui.combo_choice.addItems(self._list_function)
         self.ui.button_start.setEnabled(False)
@@ -244,8 +240,8 @@ class MainWindow(QMainWindow):
             log.error("资源丢失", True)
             return False
         # 游戏窗口检测
-        if not self.check_game_handle():
-            return False
+        # if not self.check_game_handle():
+        #     return False
         return True
 
     @log_function_call
@@ -266,33 +262,35 @@ class MainWindow(QMainWindow):
         log.info("开始检查资源")
         if not Path(config.resource_path).exists():
             return False
-        else:
-            P: Package
-            for P in [
-                baiguiyexing.BaiGuiYeXing(),
-                daoguantupo.DaoGuanTuPo(),
-                huodong.HuoDong(),
-                jiejietupo.JieJieTuPo(),
-                rilun.RiLun(),
-                xuanshangfengyin.XuanShangFengYin(),
-                yeyuanhuo.YeYuanHuo(),
-                yongshengzhihai.YongShengZhiHai(),
-                yuhun.YuHun(),
-                yuling.YuLing(),
-                zhaohuan.ZhaoHuan()
-            ]:
-                # 检查子文件夹
-                if not Path(config.resource_path/P.resource_path).exists():
-                    log.error("资源文件夹不存在！")
-                    ms.qmessagbox_update.emit("ERROR", "资源文件夹不存在！")
-                    return False
-                else:
-                    # 检查资源文件
-                    for item in P.resource_list:
-                        if not Path(config.resource_path/P.resource_path/f"{item}.png").exists():
-                            log.error(f"无{P.resource_path}/{item}.png资源文件")
-                            ms.qmessagbox_update.emit("ERROR", f"无{P.resource_path}/{item}.png资源文件")
-                            return False
+        P: Package
+        from utils.function import FightResource
+        for P in [
+            FightResource(),
+            baiguiyexing.BaiGuiYeXing(),
+            daoguantupo.DaoGuanTuPo(),
+            huodong.HuoDong(),
+            jiejietupo.JieJieTuPo(),
+            rilun.RiLun(),
+            xuanshangfengyin.XuanShangFengYin(),
+            yeyuanhuo.YeYuanHuo(),
+            yongshengzhihai.YongShengZhiHai(),
+            yuhun.YuHun(),
+            yuling.YuLing(),
+            zhaohuan.ZhaoHuan()
+        ]:
+            # 检查子文件夹
+            if not Path(config.resource_path/P.resource_path).exists():
+                log.error("资源文件夹不存在！")
+                ms.qmessagbox_update.emit("ERROR", "资源文件夹不存在！")
+                return False
+            else:
+                # 检查资源文件
+                for item in P.resource_list:
+                    log.info(f"{P.resource_path}/{item}.png")
+                    if not Path(config.resource_path/P.resource_path/f"{item}.png").exists():
+                        log.error(f"无{P.resource_path}/{item}.png资源文件")
+                        ms.qmessagbox_update.emit("ERROR", f"无{P.resource_path}/{item}.png资源文件")
+                        return False
         log.info("资源完整")
         return True
 
@@ -534,8 +532,8 @@ class MainWindow(QMainWindow):
                         self.ui.buttonGroup_passengers.checkedButton().text()
                     )
                     rilun.RiLun(n=_n, flag_driver=_flag_driver, flag_passengers=_flag_passengers).run()
-                case 12:
-                    tansuo.TanSuo().run()
+                # case 12:
+                #     tansuo.TanSuo().run()
 
         def stop() -> None:  # TODO unable to use
             """停止函数"""
@@ -597,10 +595,8 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         """关闭程序事件（继承类）"""
-        try:
+        with contextlib.suppress(Exception):
             log._write_to_file("[EXIT]")
-        except:
-            pass
         event.accept()
 
     def show_update_record_window(self):
