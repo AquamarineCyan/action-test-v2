@@ -58,7 +58,7 @@ class RiLun:
     def finish(self) -> None:
         """结束"""
         result()
-        random_sleep(2, 4)
+        random_sleep(1.5, 3)
         coor = finish_random_left_right(is_click=False)
         while True:
             pyautogui.moveTo(

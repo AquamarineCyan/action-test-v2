@@ -163,15 +163,19 @@ class DaoGuanTuPo:
                 ]
                 scene, coor = check_scene_multiple_once(_resource_list)
                 if scene == f"{self.resource_path}/zhunbei":
+                    log.ui("准备")
                     click(coor)
                     self.n += 1
                     log.num(str(self.n))
+                    random_sleep(1, 2)
                 elif scene == f"{RESOURCE_FIGHT_PATH}/victory":
                     random_sleep(1, 2)
-                elif scene in [
-                    f"{RESOURCE_FIGHT_PATH}/fail",
-                    f"{RESOURCE_FIGHT_PATH}/finish",
-                ]:
+                elif scene == f"{RESOURCE_FIGHT_PATH}/finish":
+                    log.ui("失败")
+                    finish_random_left_right()
+                    break
+                elif scene == f"{RESOURCE_FIGHT_PATH}/fail":
+                    log.ui("失败")
                     finish_random_left_right()
                     break
 

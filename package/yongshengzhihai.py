@@ -110,7 +110,7 @@ class YongShengZhiHai:
                             log.ui("队员就位")
                             break
                     # 开始挑战
-                    check_scene(f"{self.resource_path}/start")
+                    check_click(f"{self.resource_path}/start")
                     log.ui("开始")
                 if not self.flag_fighting:
                     check_click(f"{self.resource_path}/fighting", is_click=False)
