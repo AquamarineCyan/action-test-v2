@@ -93,6 +93,8 @@ class MainWindow(QMainWindow):
         ms.qmessagbox_update.connect(self.qmessagbox_update_func)
         # 主界面信息文本更新
         ms.text_print_update.connect(self.text_print_update_func)
+        # 主界面信息文本覆盖
+        ms.text_print_insert_update.connect(self.text_print_insert_func)
         # 运行状态更新
         ms.is_fighting_update.connect(self.is_fighting)
         # 完成情况文本更新
@@ -186,7 +188,7 @@ class MainWindow(QMainWindow):
                         else:
                             log.info("用户拒绝更新重启")
 
-    def text_print_update_func(self, text: str) -> None:
+    def text_print_update_func(self, text: str, color:str) -> None:
         """输出内容至文本框
 
         WARN | ERROR -> 红色
@@ -196,19 +198,26 @@ class MainWindow(QMainWindow):
         参数:
             text(str): 文本内容
         """
-        if "[WARN]" in text:
-            self.ui.text_print.setTextColor("red")
-        elif "[ERROR]" in text:
-            self.ui.text_print.setTextColor("red")
-        elif "[SCENE]" in text:
-            self.ui.text_print.setTextColor("green")
-
+        self.ui.text_print.setTextColor(color)
         self.ui.text_print.append(text)
         # 自动换行
         self.ui.text_print.ensureCursorVisible()
         # 自动滑动到底
         self.ui.text_print.moveCursor(QTextCursor.MoveOperation.End)
         self.ui.text_print.setTextColor("black")
+        
+    def text_print_insert_func(self,text:str):
+        cursor = self.ui.text_print.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        cursor.movePosition(QTextCursor.MoveOperation.EndOfLine, QTextCursor.MoveMode.KeepAnchor)
+        cursor.removeSelectedText()
+        cursor.insertText(text)
+
+        # 自动换行
+        # self.ui.text_print.ensureCursorVisible()
+        # 自动滑动到底
+        # self.ui.text_print.moveCursor(QTextCursor.MoveOperation.End)
+        # self.ui.text_print.setTextColor("black")
 
     def text_num_update_func(self, text: str) -> None:
         """输出内容至文本框“完成情况”
@@ -240,8 +249,8 @@ class MainWindow(QMainWindow):
             log.error("资源丢失", True)
             return False
         # 游戏窗口检测
-        # if not self.check_game_handle():
-        #     return False
+        if not self.check_game_handle():
+            return False
         return True
 
     @log_function_call

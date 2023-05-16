@@ -119,7 +119,11 @@ class YuHunTeam(YuHun):
         pyautogui.doubleClick()
         while True:
             # 检测到任一图像
-            scene, coor = check_scene_multiple_once(["finish", f"{self.resource_path}/finish_2000", "tanchigui"])
+            scene, coor = check_scene_multiple_once([
+                f"{RESOURCE_FIGHT_PATH}/finish",
+                f"{self.resource_path}/finish_2000",
+                f"{RESOURCE_FIGHT_PATH}/tanchigui"
+            ])
             if coor.is_effective:
                 if _flag_screenshot and self.flag_drop_statistics:
                     screenshot("cache_yuhun")
@@ -291,8 +295,11 @@ class YuHunSingle(YuHun):
         while self.n < self.max:
             _resource_list = _g_resource_list if _resource_list is None else _resource_list
             scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
-            if scene:
-                log.ui(f"scene: {scene}")
+            if scene is None:
+                continue
+            log.info(f"当前场景: {scene}")
+            if "/" in scene:
+                scene = scene.split("/")[-1]
             match scene:
                 case "title_10" | "title_11" | "title_12":
                     self.start("single")
