@@ -360,9 +360,16 @@ class MainWindow(QMainWindow):
             self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
             # 默认值
             self.ui.spinB_num.setValue(1)
-            self.ui.spinB_num.setRange(1, 200)
+            self.ui.spinB_num.setRange(1, 999)
+            
+            self.ui.button_mode_team.setEnabled(True)
+            self.ui.button_mode_single.setEnabled(True)
             self.ui.button_mode_team.setChecked(True)
+
             self.ui.button_driver_False.setChecked(True)
+            
+            self.ui.button_passengers_2.setEnabled(True)
+            self.ui.button_passengers_3.setEnabled(True)
             self.ui.button_passengers_2.setChecked(True)
         elif text == self._list_function[1]:
             # 2.组队永生之海副本
@@ -372,12 +379,18 @@ class MainWindow(QMainWindow):
             # 默认值
             self.ui.spinB_num.setValue(30)
             self.ui.spinB_num.setRange(1, 100)
+            self.ui.button_mode_team.setChecked(True)
+            # TODO
+            self.ui.button_mode_team.setEnabled(False)
+            self.ui.button_mode_single.setEnabled(False)
             self.ui.button_driver_False.setChecked(True)
             self.ui.button_passengers_2.setChecked(True)
+            self.ui.button_passengers_2.setEnabled(False)
+            self.ui.button_passengers_3.setEnabled(False)
         elif text == self._list_function[2]:
             # 3.业原火副本
             self._choice = 3
-            log.ui("默认为“痴”，有“贪”“嗔”需求的，可替换resource/yeyuanhuo路径下tiaozhan.png素材")
+            log.ui("默认为“痴”，有“贪”“嗔”需求的，可替换resource/yeyuanhuo路径下start.png")
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 100)
         elif text == self._list_function[3]:
@@ -440,9 +453,17 @@ class MainWindow(QMainWindow):
             log.ui("请确保阵容稳定，仅适用于队友挂饼，不适用于极限卡速，默认打手\n待开发：手动第一次锁定阵容")
             self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
             # 默认值
-            self.ui.spinB_num.setValue(1)
+            self.ui.spinB_num.setValue(50)
             self.ui.spinB_num.setRange(1, 100)
+
+            self.ui.button_mode_team.setEnabled(True)
+            self.ui.button_mode_single.setEnabled(True)
+            self.ui.button_mode_team.setChecked(True)
+
             self.ui.button_driver_False.setChecked(True)
+            
+            self.ui.button_passengers_2.setEnabled(True)
+            self.ui.button_passengers_3.setEnabled(True)
             self.ui.button_passengers_2.setChecked(True)
         elif text == self._list_function[11]:
             # 12.探索beta
