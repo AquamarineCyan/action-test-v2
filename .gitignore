@@ -9,6 +9,7 @@ Onmyoji_Python.exe
 # dir
 .idle
 .vscode
+artifacts
 build
 cache*
 dist
