@@ -6,6 +6,7 @@
 import random
 import time
 from pathlib import Path
+from subprocess import Popen
 
 import pyautogui
 
@@ -15,10 +16,13 @@ from .config import config
 from .coordinate import Coor
 from .decorator import *
 from .log import log
+from .mysignal import global_ms as ms
 from .window import window
 
 RESOURCE_FIGHT_PATH = config.resource_path / "fight"
 """通用战斗资源路径"""
+RESTART_BAT_PATH: str = "restart.bat"
+"""重启脚本路径"""
 
 
 class FightResource:
@@ -27,14 +31,19 @@ class FightResource:
     def __init__(self):
         self.resource_path: str = "fight"  # 路径
         self.resource_list: list = [  # 资源列表
-            "passenger_2",  # 队员2
-            "passenger_3",  # 队员3
-            "victory",  # 成功
+            "accept_invitation",  # 接受邀请
             "fail",  # 失败
             "finish",  # 结束
+            "fighting_friend_default",  # 战斗中好友图标-怀旧/简约
+            "fighting_friend_linshuanghanxue",  # 战斗中好友图标-凛霜寒雪
+            "fighting_friend_chunlvhanqing",  # 战斗中好友图标-春缕含青
+            "passenger_2",  # 队员2
+            "passenger_3",  # 队员3
+            "start_single",  # 单人挑战
+            "start_team",  # 组队挑战
             "tanchigui",  # 贪吃鬼
-            "accept_invitation",  # 接受邀请
-            "zhunbei",  # 准备
+            "victory",  # 成功
+            "zhunbei",  # 准备-怀旧主题
         ]
 
 
@@ -245,12 +254,17 @@ def result() -> bool:
         if coor.is_effective:
             log.ui("胜利")
             return True
+        coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/finish")  # 手快导致提前结束
+        if coor.is_effective:
+            log.ui("结束")
+            return True
         coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/fail")  # TODO `fail` 需要更新素材
         if coor.is_effective:
             log.ui("失败")
             return False
 
 
+@log_function_call
 def result_once() -> bool | None:
     """结果判断，遍历一次
 
@@ -268,6 +282,7 @@ def result_once() -> bool | None:
     return None
 
 
+@log_function_call
 def result_while() -> bool | None:
     """结果判断，循环遍历
 
@@ -414,3 +429,84 @@ def screenshot(screenshot_path: str = "cache") -> bool:
     except Exception:
         log.error("screenshot failed.")
         return False
+
+
+def write_restart_bat() -> None:
+    """编写通用重启脚本"""
+    bat_text = f"""@echo off
+@echo 当前为重启程序，等待自动完成
+set "program_name={config.exe_name}"
+
+:a
+tasklist | findstr /I /C:"%program_name%" > nul
+if errorlevel 1 (
+    echo %program_name% is closed.
+    goto :b
+) else (
+    echo %program_name% is still running, waiting...
+    ping 123.45.67.89 -n 1 -w 1000 > nul
+    goto :a
+)
+
+:b
+echo Continue restart...
+timeout /T 3 /NOBREAK
+start {config.exe_name}
+"""
+    with open(RESTART_BAT_PATH, "w", encoding="ANSI") as f:
+        f.write(bat_text)
+
+
+def write_upgrage_restart_bat(zip_path: str = None) -> None:
+    """编写更新重启脚本"""
+    bat_text = f"""@echo off
+@echo 当前为更新程序，等待自动完成
+set "program_name={config.exe_name}"
+
+:a
+tasklist | findstr /I /C:"%program_name%" > nul
+if errorlevel 1 (
+    echo %program_name% is closed.
+    goto :b
+) else (
+    echo %program_name% is still running, waiting...
+    ping 123.45.67.89 -n 1 -w 1000 > nul
+    goto :a
+)
+
+:b
+echo Continue updating...
+
+if not exist zip_files\{config.exe_name} exit
+timeout /T 3 /NOBREAK
+move /y zip_files\{config.exe_name} .
+rd /s /q zip_files
+del {zip_path}
+start {config.exe_name}
+"""
+
+    with open(RESTART_BAT_PATH, "w", encoding="ANSI") as f:
+        f.write(bat_text)
+
+
+def app_restart(is_upgrade: bool = False) -> None:
+    """程序重启
+
+    参数:
+        is_upgrade (bool): 是否更新重启，默认否
+    """
+    log.info("重启中")
+    # 更新重启有独立的脚本
+    if not is_upgrade:
+        write_restart_bat()
+    # 启动.bat文件
+    Popen([RESTART_BAT_PATH])
+    # 关闭当前exe程序
+    log.info("App Exiting...")
+    ms.sys_exit_update.emit(True)
+
+
+def remove_restart_bat_file() -> None:
+    """删除重启脚本"""
+    Path(RESTART_BAT_PATH).unlink(missing_ok=True)
+    Path("reload.bat").unlink(missing_ok=True)  # FIXME v1.7.3引入的更新重启脚本未被删除

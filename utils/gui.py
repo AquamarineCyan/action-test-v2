@@ -18,6 +18,7 @@ from ui.updateui import Ui_Form as Ui_Update_Record
 from .config import config
 from .decorator import *
 from .event import event_thread
+from .function import app_restart, remove_restart_bat_file
 from .log import log
 from .mysignal import global_ms as ms
 from .update import update_record
@@ -28,7 +29,7 @@ from .window import window
 class MainWindow(QMainWindow):
     _list_function = [  # 功能列表
         "1.御魂副本",
-        "2.组队永生之海副本",
+        "2.永生之海副本",
         "3.业原火副本",
         "4.御灵副本",
         "5.个人突破",
@@ -109,6 +110,8 @@ class MainWindow(QMainWindow):
         self.ui.button_start.clicked.connect(self.start_stop)
         # 功能选择事件
         self.ui.combo_choice.currentIndexChanged.connect(self.choice_text)
+        # restart
+        self.ui.button_restart.clicked.connect(app_restart)
         # 更新记录事件
         self.ui.button_update_record.clicked.connect(self.show_update_record_window)
         # GitHub地址悬停事件
@@ -138,19 +141,21 @@ class MainWindow(QMainWindow):
         if config.config_user:
             for item in config.config_user.keys():
                 log.info(f"{item} : {config.config_user[item]}")
-        log.ui("未正确使用所产生的一切后果自负，保持您的肝度与日常无较大差距")
+        log.ui("未正确使用所产生的一切后果自负，保持您的肝度与日常无较大差距，本程序目前仅兼容桌面版，\
+使用过程中会使用鼠标，如遇紧急情况可将鼠标划至屏幕左上角，触发安全警告强制停止")
         if self._check_enviroment():
             log.ui("环境完整")
             self.ui.combo_choice.setEnabled(True)
             self.ui.spinB_num.setEnabled(True)
             log.ui("移动游戏窗口后，点击下方“游戏检测”即可")
-            log.ui("请选择功能以加载内容")
+            log.ui("请选择功能以加载内容，请确保锁定阵容")
         else:
             log.error("环境损坏", True)
 
         log.ui("初始化完成")
         log.ui("主要战斗场景UI为「怀旧主题」，持续兼容部分新场景中，可在游戏内图鉴中设置")
         log.clean_up()
+        remove_restart_bat_file()
         upgrade.check_latest()
         # 悬赏封印
         if config.config_user.get("悬赏封印") == "关闭":
@@ -184,11 +189,11 @@ class MainWindow(QMainWindow):
                             "是否更新重启，如有自己替换的素材，请在取消后手动解压更新包"
                         ) == QMessageBox.Yes:
                             log.info("用户接受更新重启")
-                            Thread(target=upgrade.reload, daemon=True).start()
+                            Thread(target=upgrade.restart, daemon=True).start()
                         else:
                             log.info("用户拒绝更新重启")
 
-    def text_print_update_func(self, text: str, color:str) -> None:
+    def text_print_update_func(self, text: str, color: str) -> None:
         """输出内容至文本框
 
         WARN | ERROR -> 红色
@@ -205,8 +210,8 @@ class MainWindow(QMainWindow):
         # 自动滑动到底
         self.ui.text_print.moveCursor(QTextCursor.MoveOperation.End)
         self.ui.text_print.setTextColor("black")
-        
-    def text_print_insert_func(self,text:str):
+
+    def text_print_insert_func(self, text: str):
         cursor = self.ui.text_print.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
         cursor.movePosition(QTextCursor.MoveOperation.EndOfLine, QTextCursor.MoveMode.KeepAnchor)
@@ -316,7 +321,7 @@ class MainWindow(QMainWindow):
             log.ui("成功关闭悬赏封印，重启程序后生效")
         log.info(f"设置项：悬赏封印已更改为 {text}")
         config.config_user_changed("悬赏封印", text)
-    
+
     @log_function_call
     def check_game_handle(self) -> bool:
         """游戏窗口检测
@@ -361,13 +366,13 @@ class MainWindow(QMainWindow):
             # 默认值
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
-            
+
             self.ui.button_mode_team.setEnabled(True)
             self.ui.button_mode_single.setEnabled(True)
             self.ui.button_mode_team.setChecked(True)
 
             self.ui.button_driver_False.setChecked(True)
-            
+
             self.ui.button_passengers_2.setEnabled(True)
             self.ui.button_passengers_3.setEnabled(True)
             self.ui.button_passengers_2.setChecked(True)
@@ -441,9 +446,9 @@ class MainWindow(QMainWindow):
             # 10.限时活动
             self._choice = 10
             log.ui(
-                "适用于限时活动及其他连点，请提前确保阵容完好并锁定\
-                可替换resource/huodong下的title.png、start.png\
-                当前为百面归一"
+                "适用于限时活动及其他连点，请提前确保阵容完好并锁定\n\
+可替换resource/huodong下的素材\n\
+当前为「宴场维和」，选个人少的频道+打开活动设置里的高帧率，可适当提高稳定性"
             )
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
@@ -461,7 +466,7 @@ class MainWindow(QMainWindow):
             self.ui.button_mode_team.setChecked(True)
 
             self.ui.button_driver_False.setChecked(True)
-            
+
             self.ui.button_passengers_2.setEnabled(True)
             self.ui.button_passengers_3.setEnabled(True)
             self.ui.button_passengers_2.setChecked(True)
@@ -490,39 +495,52 @@ class MainWindow(QMainWindow):
             self.is_fighting(True)
             match self._choice:
                 case 1:  # 御魂副本
-                    _flag_drop_statistics = self.ui.button_yuhun_drop_statistics.isChecked()
+                    _flag_drop_statistics = (
+                        self.ui.button_yuhun_drop_statistics.isChecked()
+                    )
                     match self.ui.buttonGroup_mode.checkedButton().text():
                         case "组队":
-                            if self.ui.buttonGroup_driver.checkedButton().text() == "否":
-                                _flag_driver = False
-                            else:
-                                _flag_driver = True
-                            _flag_passengers = int(self.ui.buttonGroup_passengers.checkedButton().text())
-                            # 组队挑战
+                            _flag_driver = (
+                                self.ui.buttonGroup_driver.checkedButton().text()
+                                != "否"
+                            )
+                            _flag_passengers = int(
+                                self.ui.buttonGroup_passengers.checkedButton().text()
+                            )
                             yuhun.YuHunTeam(
                                 n=_n,
                                 flag_driver=_flag_driver,
                                 flag_passengers=_flag_passengers,
-                                flag_drop_statistics=_flag_drop_statistics
+                                flag_drop_statistics=_flag_drop_statistics,
                             ).run()
                         case "单人":
-                            yuhun.YuHunSingle(n=_n, flag_drop_statistics=_flag_drop_statistics).run()
-                    # 当前线程id
-                    # print('main id', int(QThread.currentThreadId()))
-                    # thread = MyThread(
-                    #     func=yuhun.YuHun().run,
-                    #     args=(n, flag_driver, flag_passengers)
-                    # )
-                    # self._thread.finished.connect(self._thread.deleteLater())
-                case 2:
-                    # 2.组队永生之海副本
-                    # 是否司机（默认否）
-                    driver = self.ui.buttonGroup_driver.checkedButton().text()
-                    if driver == "否":
-                        _flag_driver = False
-                    else:
-                        _flag_driver = True
-                    yongshengzhihai.YongShengZhiHai(n=_n, flag_driver=_flag_driver).run()
+                            yuhun.YuHunSingle(
+                                n=_n, flag_drop_statistics=_flag_drop_statistics
+                            ).run()
+                            # 当前线程id
+                            # print('main id', int(QThread.currentThreadId()))
+                            # thread = MyThread(
+                            #     func=yuhun.YuHun().run,
+                            #     args=(n, flag_driver, flag_passengers)
+                            # )
+                            # self._thread.finished.connect(self._thread.deleteLater())
+                case 2:  # 永生之海副本
+                    _flag_drop_statistics = (
+                        self.ui.button_yuhun_drop_statistics.isChecked()
+                    )
+                    match self.ui.buttonGroup_mode.checkedButton().text():
+                        case "组队":
+                            _flag_driver = (
+                                self.ui.buttonGroup_driver.checkedButton().text()
+                                != "否"
+                            )
+                            yongshengzhihai.YongShengZhiHaiTeam(
+                                n=_n,
+                                flag_driver=_flag_driver,
+                                flag_drop_statistics=_flag_drop_statistics,
+                            ).run()
+                        case "单人":
+                            pass
                 case 3:
                     # 3.业原火
                     yeyuanhuo.YeYuanHuo(n=_n).run()
@@ -547,8 +565,8 @@ class MainWindow(QMainWindow):
                     baiguiyexing.BaiGuiYeXing(n=_n).run()
                 case 10:
                     # 10.限时活动
-                    # huodong.HuoDong(n=_n).run()
-                    huodong.BaiMianGuiYi(n=_n).run()
+                    huodong.HuoDong(n=_n).run()
+                    # huodong.BaiMianGuiYi(n=_n).run()
                 case 11:
                     # 11.组队日轮副本
                     # 是否司机（默认否）
