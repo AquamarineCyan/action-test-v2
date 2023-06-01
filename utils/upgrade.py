@@ -45,7 +45,6 @@ class Upgrade:
             log.info(f"api_url.status_code:{result.status_code}")
             if result.status_code == 200:
                 data_dict = json.loads(result.text)
-                log.info("tag_name:{}".format(data_dict["tag_name"]))
                 if "v" in data_dict["tag_name"]:
                     self.version_github = data_dict["tag_name"][1:]
                     log.info(f"version_github:{self.version_github}")
@@ -124,11 +123,11 @@ class Upgrade:
                 log.ui(self.new_version_info)
                 self._check_download_zip()
             case "LATEST":
-                log.ui("暂无更新")
+                log.info("暂无更新")
             case "CONNECT ERROR":
-                log.ui("访问更新地址失败")
+                log.error("访问更新地址失败")
             case _:
-                log.error("UPDATE ERROR", True)
+                log.error("UPDATE ERROR")
         for item_path in self.application_path.iterdir():
             if "Onmyoji_Python" in item_path.name.__str__() and item_path.suffix == ".zip":
                 self.zip_path = item_path

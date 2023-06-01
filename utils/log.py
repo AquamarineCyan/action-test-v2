@@ -3,28 +3,24 @@
 # log.py
 """日志"""
 
-import time
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from .mysignal import global_ms as ms
+from .application import app
 
 
 class Log:
     """日志"""
 
-    def __init__(self):
-        self.application_path: Path = Path.cwd()
-        self.log_dir_path = self.application_path / "log"
-
     def init(self) -> bool:
         """初始化
 
-        Returns:
+        返回:
             bool: 创建日志文件夹是否成功
         """
         try:
-            self.log_dir_path.mkdir(parents=True, exist_ok=True)
+            app.LOG_DIR_PATH.mkdir(parents=True, exist_ok=True)
             return True
         except Exception:
             return False
@@ -32,15 +28,17 @@ class Log:
     def _write_to_file(self, text: str | int) -> bool:
         """写入日志文件
 
-        Args:
+        参数:
             text (str | int): 文本内容
 
-        Returns:
+        返回:
             bool: 文本写入是否成功
         """
-        file: Path = self.log_dir_path / f"log-{time.strftime('%Y%m%d')}.txt"
+        file: Path = app.LOG_DIR_PATH / f"log-{datetime.now().strftime('%Y%m%d')}.txt"
         if isinstance(text, int):
             text = str(text)
+        now = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        text = f"[{now}] {text}"
         try:
             with file.open(mode="a", encoding="utf-8") as f:
                 f.write(f"{text}\n")
@@ -49,44 +47,35 @@ class Log:
             print(f"FileNotFoundError {file}")
             return False
 
-    def _text_format(self, text: str, level: str = "INFO", print_to_gui: bool = False) -> str:
+    def _text_format(self, text: str, level: str = "INFO", print_to_gui: bool = False) -> None:
         """封装文本格式
 
-        Args:
+        参数:
             text (str): 文本内容
             level (str): 日志等级，默认"INFO"
             print_to_gui (bool): 是否在UI界面输出，默认否
-
-        Returns:
-            str: 日志内容
         """
-        time_now = time.strftime("%H:%M:%S")
         _color: str = "black"
+        text = f"[{level}] {text}"
         match level:
-            case "INFO":
-                text = f"{time_now} [INFO] {text}"
             case "SCENE":
-                text = f"{time_now} [SCENE] {text}"
                 _color = "green"
-            case "NUM":
-                text = f"{time_now} [NUM] {text}"
-            case "WARN":
-                text = f"{time_now} [WARN] {text}"
+            case "WARN" | "ERROR":
                 _color = "red"
-            case "ERROR":
-                text = f"{time_now} [ERROR] {text}"
-                _color = "red"
-            case _:
-                text = f"{time_now} [INFO] {text}"
-        print(text)  # 输出至控制台调试
-        if print_to_gui and "[NUM]" not in text:
-            ms.text_print_update.emit(text, _color)  # 输出至UI界面
+        # 输出至日志，使用毫秒记录
         self._write_to_file(text)
+        now = datetime.now().strftime("%H:%M:%S")
+        # 输出至控制台调试
+        print(f"[{now}] {text}")
+        # 输出至UI界面
+        text = f"{now} {text}"
+        if print_to_gui and "[NUM]" not in text:
+            ms.text_print_update.emit(text, _color)
 
     def info(self, text: str, print_to_gui: bool = False) -> None:
         """标准日志
 
-        Args:
+        参数:
             text (str): 文本内容
             print_to_gui (bool): 是否在UI界面输出，默认否
         """
@@ -95,7 +84,7 @@ class Log:
     def ui(self, text: str) -> None:
         """基于标准日志的UI输出
 
-        Args:
+        参数:
             text (str): 文本内容
         """
         self.info(text=text, print_to_gui=True)
@@ -103,7 +92,7 @@ class Log:
     def scene(self, text: str) -> None:
         """场景日志
 
-        Args:
+        参数:
             text (str): 场景描述
         """
         self._text_format(text, "SCENE", True)
@@ -111,7 +100,7 @@ class Log:
     def num(self, text: str) -> None:
         """次数日志
 
-        Args:
+        参数:
             text (str): 次数
         """
         ms.text_num_update.emit(text)  # 输出至完成情况UI界面
@@ -120,7 +109,7 @@ class Log:
     def warn(self, text: str, print_to_gui: bool = True) -> None:
         """警告日志
 
-        Args:
+        参数:
             text (str): 文本内容
             print_to_gui (bool): 是否在UI界面输出，默认否
         """
@@ -129,7 +118,7 @@ class Log:
     def error(self, text: str, print_to_gui: bool = False) -> None:
         """错误日志
 
-        Args:
+        参数:
             text (str): 文本内容
             print_to_gui (bool): 是否在UI界面输出，默认否
         """
@@ -138,7 +127,7 @@ class Log:
     def is_fighting(self, flag: bool = True) -> None:
         """是否进行中，禁用按钮
 
-        Args:
+        参数:
             flag (bool): 进行中，默认是
         """
         ms.is_fighting_update.emit(flag)
@@ -148,10 +137,10 @@ class Log:
         log.info("log clean up...")
         today = date.today()
         n = 0
-        if not self.log_dir_path.is_dir():
+        if not app.LOG_DIR_PATH.is_dir():
             log.error("Not found log dir.")
             return False
-        for item in self.log_dir_path.iterdir():
+        for item in app.LOG_DIR_PATH.iterdir():
             log_date = date(int(item.stem[-8:-4]), int(item.stem[-4:-2]), int(item.stem[-2:]))
             # 自动清理
             if (today-log_date).days > 30:
@@ -161,7 +150,8 @@ class Log:
                     self.info(f"Remove file: {item.absolute()} successfully.")
                 except Exception:
                     self.error(f"Remove file: {item.absolute()} failed.")
-        self.info(f"Clean up {n} log files in total.")
+        if n:
+            self.info(f"Clean up {n} log files in total.")
         return True
 
 
