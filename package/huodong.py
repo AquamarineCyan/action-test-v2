@@ -69,9 +69,7 @@ class HuoDong:
     def run(self) -> None:
         _g_resource_list: list = [
             f"{self.resource_path}/title",
-            f"{RESOURCE_FIGHT_PATH}/fighting_friend_default",
-            f"{RESOURCE_FIGHT_PATH}/fighting_friend_linshuanghanxue",
-            f"{RESOURCE_FIGHT_PATH}/fighting_friend_chunlvhanqing",
+            f"{RESOURCE_FIGHT_PATH}/fighting_back_default",
         ]
         _flag_title_msg: bool = True
 
@@ -89,7 +87,8 @@ class HuoDong:
                     _flag_title_msg = False
                     self.start()
                     random_sleep(1, 2)
-                case "fighting_friend_default" | "fighting_friend_linshuanghanxue" | "fighting_friend_chunlvhanqing":
+                # case "fighting_friend_default" | "fighting_friend_linshuanghanxue" | "fighting_friend_chunlvhanqing":
+                case "fighting_back_default":
                     log.ui("对局进行中")
                     self.finish()
                     self.n += 1
