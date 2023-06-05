@@ -7,7 +7,6 @@ config.yaml
 Onmyoji_Python.exe
 
 # dir
-.idle
 .vscode
 artifacts
 build
@@ -15,5 +14,5 @@ cache*
 dist
 doc
 log
-resource/test
+src/resource/test
 test_code
