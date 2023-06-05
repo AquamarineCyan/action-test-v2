@@ -7,7 +7,6 @@ config.yaml
 Onmyoji_Python.exe
 
 # dir
-.vscode
 artifacts
 build
 cache*
