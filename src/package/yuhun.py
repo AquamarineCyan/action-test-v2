@@ -11,6 +11,7 @@ from ..utils.function import (
     check_click,
     check_scene_multiple_once,
     click,
+    finish,
     finish_random_left_right,
     is_passengers_on_position,
     random_sleep,
@@ -171,7 +172,7 @@ class YuHunTeam(YuHun):
                     if self.flag_driver:
                         is_passengers_on_position(self.flag_passengers)
                         self.start("team")
-                        random_sleep(1, 2)
+                    random_sleep(1, 2)
                     _flag_title_msg = False
                 case "fighting_friend_default" | "fighting_friend_linshuanghanxue" | "fighting_friend_chunlvhanqing":
                     log.ui("对局进行中")
@@ -251,7 +252,7 @@ class YuHunSingle(YuHun):
         """
         结束 等待自动掉落
         """
-        result()
+        finish()
         random_sleep(0.4, 0.8)
         # 结算
         coor = finish_random_left_right(False, is_multiple_drops_x=True)

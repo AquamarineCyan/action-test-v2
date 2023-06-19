@@ -39,7 +39,8 @@ class MainWindow(QMainWindow):
         "9.百鬼夜行",
         "10.限时活动",
         "11.组队日轮副本",
-        "12.探索beta"
+        "12.单人探索",
+        "13.契灵-探查",
     ]
     _choice: int  # 功能
 
@@ -239,8 +240,8 @@ class MainWindow(QMainWindow):
             log.error("资源丢失", True)
             return False
         # 游戏窗口检测
-        # if not self.check_game_handle():
-        #     return False
+        if not self.check_game_handle():
+            return False
         return True
 
     @log_function_call
@@ -278,7 +279,6 @@ class MainWindow(QMainWindow):
         ]:
             # 检查子文件夹
             if not Path(RESOURCE_DIR_PATH/P.resource_path).exists():
-                
                 log.error("资源文件夹不存在！", True)
                 ms.qmessagbox_update.emit("ERROR", "资源文件夹不存在！")
                 return False
@@ -455,9 +455,17 @@ class MainWindow(QMainWindow):
             self.ui.button_passengers_3.setEnabled(True)
             self.ui.button_passengers_2.setChecked(True)
         elif text == self._list_function[11]:
-            # 12.探索beta
+            # 12.单人探索
             self._choice = 12
             log.warn("测试功能")
+            log.ui("提前准备好自动轮换和加成，仅单人探索")
+            self.ui.spinB_num.setValue(1)
+        elif text == self._list_function[12]:
+            # 13.契灵-探查
+            self._choice = 13
+            log.warn("测试功能")
+            # log.ui("提前准备好自动轮换和加成，仅单人探索")
+            self.ui.spinB_num.setValue(1)
 
     def start_stop(self) -> None:
         """开始&停止按钮"""
@@ -555,7 +563,9 @@ class MainWindow(QMainWindow):
                     )
                     rilun.RiLun(n=_n, flag_driver=_flag_driver, flag_passengers=_flag_passengers).run()
                 case 12:
-                    tansuo.TanSuoTest().run()
+                    tansuo.TanSuo(n=_n).run()
+                case 13:
+                    qiling.QiLing(n=_n).run()
 
         def stop() -> None:  # TODO unable to use
             """停止函数"""
