@@ -20,7 +20,7 @@ runs:
         architecture: "x64"
         cache: "poetry"
     
-    - run: poetry run pip wheel --use-pep517 "pyperclip (==1.8.2)"
+    - run: poetry run pip install pyperclip==1.8.2
       shell: bash
       
     - run: poetry install
