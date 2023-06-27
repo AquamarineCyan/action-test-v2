@@ -19,6 +19,7 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
+      app-name: Onmyoji_Python
 
     steps:
       - uses: actions/checkout@v3
@@ -32,9 +33,12 @@ jobs:
         run: |
           poetry run pyinstaller main.spec
           
-      - name: Upload a Build Artifact
+      - name: Upload build
         uses: actions/upload-artifact@v3
         with:
-          name: Onmyoji_Python.exe
-          path: dist/Onmyoji_Python.exe
-          
+          name: ${{ env.app-name }}
+          path: |
+            dist/${{ env.app-name }}.exe
+            buzhihuo.ico
+            src/resource
+            README.MD
