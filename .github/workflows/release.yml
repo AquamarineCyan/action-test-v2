@@ -31,23 +31,27 @@ jobs:
         run: |
           poetry run pyinstaller main.spec
           
-      - name: Upload build
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.app-name }}
-          path: |
-            dist/${{ env.app-name }}.exe
-            buzhihuo.ico
-            src/resource
-            README.MD
+#       - name: Upload build
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: ${{ env.app-name }}
+#           path: |
+#             dist/${{ env.app-name }}.exe
+#             buzhihuo.ico
+#             src/resource
+#             README.MD
       
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.app-name }}
+#       - name: Download Artifact
+#         uses: actions/download-artifact@v3
+#         with:
+#           name: ${{ env.app-name }}
           
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ env.app-name }}.exe
+          files: |
+            dist/${{ env.app-name }}.exe
+            buzhihuo.ico
+            src/resource
+            README.MD
