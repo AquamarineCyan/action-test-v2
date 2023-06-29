@@ -55,10 +55,10 @@ jobs:
       - name: string
         run: |
           set s=v0.0.6
-          echo s
+          echo %s%
           echo %s:~1%
           set tag=%s:~1%
-          echo tag
+          echo %tag%
           REN README.MD README-%tag%.MD
       
       - name: Release
