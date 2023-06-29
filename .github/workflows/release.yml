@@ -2,8 +2,8 @@ name: release
 
 on: 
   push:
-    tags:
-      - 'v*'
+#     tags:
+#       - 'v*'
 
 jobs:
   release:
@@ -52,6 +52,15 @@ jobs:
           echo ${{ github.ref_name }}
           echo ${{ github.ref_name }}[1:]
 #         refs/tags/v0.0.6
+
+      - name: string
+        run: |
+          set s = ${{ github.ref_name }}
+          echo s
+          echo %s:~1%
+          set tag = %s:~1%
+          echo tag
+          REN README.MD README-%tag%.MD
       
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -59,6 +68,7 @@ jobs:
         with:
           files: |
             README.MD
+            README*.MD
 #            dist/${{ env.app-name }}.exe
 #            buzhihuo.ico
 #            src/resource
