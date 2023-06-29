@@ -54,7 +54,7 @@ jobs:
 
       - name: string
         run: |
-          set s = v0.0.6
+          set s=v0.0.6
           echo s
           echo %s:~1%
           set tag = %s:~1%
