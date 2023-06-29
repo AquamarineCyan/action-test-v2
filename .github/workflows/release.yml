@@ -22,14 +22,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Setup Python environment
-        uses: ./.github/actions/setup-python
-        with:
-          python-version: ${{ matrix.python-version }}
+#       - name: Setup Python environment
+#         uses: ./.github/actions/setup-python
+#         with:
+#           python-version: ${{ matrix.python-version }}
       
-      - name: Build
-        run: |
-          poetry run pyinstaller main.spec
+#       - name: Build
+#         run: |
+#           poetry run pyinstaller main.spec
           
 #       - name: Upload build
 #         uses: actions/upload-artifact@v3
@@ -46,14 +46,15 @@ jobs:
 #         with:
 #           name: ${{ env.app-name }}
          
-      - run: echo github.ref
+      - run: echo ${{ github.ref }}
       
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/${{ env.app-name }}.exe
+            README.MD
+#            dist/${{ env.app-name }}.exe
 #            buzhihuo.ico
 #            src/resource
 #            README.MD
