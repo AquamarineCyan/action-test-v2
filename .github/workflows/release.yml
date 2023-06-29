@@ -55,11 +55,12 @@ jobs:
       - name: string
         run: |
           set s=v0.0.6
-          echo %s%
-          echo %s:~1%
-          set tag=%s:~1%
-          echo %tag%
+          echo ${{ s }}
+          echo ${{ s:~1 }}
+          set tag=${{ s:~1 }}
+          echo ${{ tag }}
           REN README.MD README-%tag%.MD
+          dir
       
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
