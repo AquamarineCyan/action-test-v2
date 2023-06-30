@@ -47,7 +47,7 @@ jobs:
 #           name: ${{ env.app-name }}
        
       - run: |
-          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "TAG_NAME=v$(poetry version -s)" >> $GITHUB_ENV
           echo ${{ env.TAG_NAME }}
      
       - name: tag name
