@@ -46,6 +46,10 @@ jobs:
 #         with:
 #           name: ${{ env.app-name }}
        
+      - run: |
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo ${{ env.TAG_NAME }}
+     
       - name: tag name
         run:  |
           echo ${{ github.ref }}
@@ -56,7 +60,8 @@ jobs:
         run: |
           dir
           set s=v0.0.6
-          echo ${{ s }}
+          echo s
+          echo %s%
           echo ${{ s:~1 }}
           set tag=${{ s:~1 }}
           echo ${{ tag }}
