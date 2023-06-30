@@ -54,6 +54,7 @@ jobs:
 
       - name: string
         run: |
+          dir
           set s=v0.0.6
           echo ${{ s }}
           echo ${{ s:~1 }}
@@ -61,6 +62,7 @@ jobs:
           echo ${{ tag }}
           REN README.MD README-%tag%.MD
           dir
+        shell: bash
       
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
