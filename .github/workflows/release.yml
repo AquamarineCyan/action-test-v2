@@ -60,6 +60,7 @@ jobs:
         run:  |
           echo ${{ github.ref }}
           echo ${{ github.ref_name }}
+          echo ${{ github.ref_name:1 }}
 #         refs/tags/v0.0.6
 
       - name: string
