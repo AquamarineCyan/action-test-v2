@@ -50,11 +50,11 @@ jobs:
       
 #       - run: echo $(poetry version -s)
         
-      - name: Check ENV
+#      - name: Check ENV
 #         env:
 #           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo ${{ env.VERSION }}
+#        run: |
+#          echo ${{ env.VERSION }}
 #          echo ${{ steps.vars.outputs.tag }}
      
       - name: tag name
