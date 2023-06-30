@@ -62,11 +62,11 @@ jobs:
           set s=v0.0.6
           echo s
           echo %s%
-          echo ${{ s:~1 }}
-          set tag=${{ s:~1 }}
-          echo ${{ tag }}
-          REN README.MD README-%tag%.MD
-          dir
+#          echo ${{ s:~1 }}
+#          set tag=${{ s:~1 }}
+#          echo ${{ tag }}
+#          REN README.MD README-%tag%.MD
+#          dir
         shell: bash
       
       - name: Release
