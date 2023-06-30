@@ -46,9 +46,9 @@ jobs:
 #         with:
 #           name: ${{ env.app-name }}
        
-      - name: Set output
-        id: vars
-        run: echo "VERSION=$(poetry version -s)" >> $GITHUB_ENV
+      - run: echo "VERSION=v$(poetry version -s)" >> $GITHUB_ENV
+      
+      - run: echo $(poetry version -s)
         
       - name: Check ENV
 #         env:
@@ -61,7 +61,6 @@ jobs:
         run:  |
           echo ${{ github.ref }}
           echo ${{ github.ref_name }}
-          echo ${github.ref_name:1}
 #         refs/tags/v0.0.6
 
       - name: string
