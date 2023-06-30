@@ -48,7 +48,7 @@ jobs:
        
       - run: echo "VERSION=v$(poetry version -s)" >> $GITHUB_ENV
       
-      - run: echo $(poetry version -s)
+#       - run: echo $(poetry version -s)
         
       - name: Check ENV
 #         env:
@@ -66,12 +66,6 @@ jobs:
       - name: string
         run: |
           dir
-          set s=v0.0.6
-          echo s
-          echo %s%
-#          echo ${{ s:~1 }}
-#          set tag=${{ s:~1 }}
-#          echo ${{ tag }}
 #          REN README.MD README-%tag%.MD
 #          dir
         shell: bash
