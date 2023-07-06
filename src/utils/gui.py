@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         "10.限时活动",
         "11.组队日轮副本",
         "12.单人探索",
-        "13.契灵-探查",
+        "13.契灵",
     ]
     _choice: int  # 功能
 
@@ -62,18 +62,17 @@ class MainWindow(QMainWindow):
         self.ui.combo_choice.setEnabled(False)
         self.ui.spinB_num.setEnabled(False)
         self.ui.stackedWidget.setCurrentIndex(0)  # 索引0，空白
-        self.ui.text_print.document().setMaximumBlockCount(50)
         self.ui.label_tips.hide()
         # 设置界面
-        self.ui.setting_update_comboBox.addItems(
-            config.config_default["更新模式"]
-        )
-        self.ui.setting_xuanshangfengyin_comboBox.addItems(
-            config.config_default["悬赏封印"]
-        )
-        self.ui.setting_update_comboBox.setCurrentText(config.config_user.get("更新模式"))
-        self.ui.setting_xuanshangfengyin_comboBox.setCurrentText(config.config_user.get("悬赏封印"))
-        self.ui.label_GitHub_address.setToolTip("open with webbrower")
+        _setting_QComboBox_dict: dict = {
+            self.ui.setting_update_comboBox: "更新模式",
+            self.ui.setting_download_comboBox: "下载线路",
+            self.ui.setting_xuanshangfengyin_comboBox: "悬赏封印",
+        }
+        for key, value in _setting_QComboBox_dict.items():
+            key.addItems(config.config_default[value])
+            key.setCurrentText(config.config_user.get(value))
+        self.ui.label_GitHub_address.setToolTip("通过浏览器打开")
 
         # 自定义信号
         # 弹窗更新
@@ -109,6 +108,10 @@ class MainWindow(QMainWindow):
         # 更新模式
         self.ui.setting_update_comboBox.currentIndexChanged.connect(
             self.setting_update_comboBox_func
+        )
+        # 下载线路
+        self.ui.setting_download_comboBox.currentIndexChanged.connect(
+            self.setting_download_comboBox_func
         )
         # 悬赏封印
         self.ui.setting_xuanshangfengyin_comboBox.currentIndexChanged.connect(
@@ -298,6 +301,12 @@ class MainWindow(QMainWindow):
         log.info(f"设置项：更新模式已更改为 {text}")
         config.config_user_changed("更新模式", text)
 
+    def setting_download_comboBox_func(self) -> None:
+        """设置-下载线路-更改"""
+        text = self.ui.setting_download_comboBox.currentText()
+        log.info(f"设置项：下载线路已更改为 {text}")
+        config.config_user_changed("下载线路", text)
+
     def setting_xuanshangfengyin_comboBox_func(self) -> None:
         """设置-悬赏封印-更改"""
         text = self.ui.setting_xuanshangfengyin_comboBox.currentText()
@@ -432,7 +441,7 @@ class MainWindow(QMainWindow):
             log.ui(
                 "适用于限时活动及其他连点，请提前确保阵容完好并锁定\n\
 可替换resource/huodong下的素材\n\
-当前为「宴场维和」，选个人少的频道+打开活动设置里的高帧率，可适当提高稳定性"
+当前为「森间试炼」，选个人少的频道+打开活动设置里的高帧率，可适当提高稳定性"
             )
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
@@ -461,11 +470,12 @@ class MainWindow(QMainWindow):
             log.ui("提前准备好自动轮换和加成，仅单人探索")
             self.ui.spinB_num.setValue(1)
         elif text == self._list_function[12]:
-            # 13.契灵-探查
+            # 13.契灵
             self._choice = 13
-            log.warn("测试功能")
-            # log.ui("提前准备好自动轮换和加成，仅单人探索")
+            log.ui("次数为探查次数，选中“结契”按钮将在探查结束后自动结契场上的契灵")
+            self.ui.stackedWidget.setCurrentIndex(4)  # 索引4，契灵
             self.ui.spinB_num.setValue(1)
+            self.ui.button_qiling_tancha.setChecked(True)
 
     def start_stop(self) -> None:
         """开始&停止按钮"""
@@ -565,7 +575,13 @@ class MainWindow(QMainWindow):
                 case 12:
                     tansuo.TanSuo(n=_n).run()
                 case 13:
-                    qiling.QiLing(n=_n).run()
+                    _flag_tancha = self.ui.button_qiling_tancha.isChecked()
+                    _flag_jieqi = self.ui.button_qiling_jieqi.isChecked()
+                    qiling.QiLing(
+                        n=_n,
+                        _flag_tancha=_flag_tancha,
+                        _flag_jieqi=_flag_jieqi
+                    ).run()
 
         def stop() -> None:  # TODO unable to use
             """停止函数"""
