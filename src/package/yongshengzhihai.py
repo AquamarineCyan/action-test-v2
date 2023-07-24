@@ -5,13 +5,19 @@
 
 import pyautogui
 
-from ..utils.coordinate import Coor
 from ..utils.decorator import log_function_call, run_in_thread, time_count
 from ..utils.event import event_thread
-from ..utils.function import (RESOURCE_FIGHT_PATH, check_click,
-                              check_scene_multiple_once, click,
-                              finish_random_left_right, get_coor_info,
-                              random_sleep, result, screenshot)
+from ..utils.function import (
+    RESOURCE_FIGHT_PATH,
+    check_click,
+    check_scene_multiple_once,
+    click,
+    finish_random_left_right,
+    get_coor_info,
+    random_sleep,
+    result,
+    screenshot
+)
 from ..utils.log import log
 from ..utils.window import window
 from .utils import Package
