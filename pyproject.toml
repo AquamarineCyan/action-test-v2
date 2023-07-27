@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "onmyoji-python"
-version = "1.7.5"
+version = "1.7.6"
 description = "auto for Onmyoji"
 authors = ["AquamarineCyan <1057424730@qq.com>"]
 readme = "README.md"
@@ -17,7 +17,7 @@ opencv-python = "^4.8.0.74"
 numpy = "^1.25.1"
 pillow = "^10.0.0"
 pyinstaller = "^5.13.0"
-pyyaml = "^6.0.1"
+pyyaml = "^6.0"
 win11toast = "^0.32"
 
 

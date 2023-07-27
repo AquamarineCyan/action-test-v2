@@ -13,5 +13,6 @@ cache*
 dist
 doc
 log
+screenshot
 src/resource/test
 test_code
