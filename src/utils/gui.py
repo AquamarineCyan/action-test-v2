@@ -65,13 +65,13 @@ class MainWindow(QMainWindow):
         self.ui.label_tips.hide()
         # 设置界面
         _setting_QComboBox_dict: dict = {
-            self.ui.setting_update_comboBox: "更新模式",
-            self.ui.setting_download_comboBox: "下载线路",
-            self.ui.setting_xuanshangfengyin_comboBox: "悬赏封印",
+            self.ui.setting_update_comboBox: "update",
+            self.ui.setting_update_download_comboBox: "update_download",
+            self.ui.setting_xuanshangfengyin_comboBox: "xuanshangfengyin",
         }
         for key, value in _setting_QComboBox_dict.items():
-            key.addItems(config.config_default[value])
-            key.setCurrentText(config.config_user.get(value))
+            key.addItems(config.config_default.model_dump()[value])
+            key.setCurrentText(config.config_user.model_dump().get(value))
         self.ui.label_GitHub_address.setToolTip("通过浏览器打开")
 
         # 自定义信号
@@ -110,8 +110,8 @@ class MainWindow(QMainWindow):
             self.setting_update_comboBox_func
         )
         # 下载线路
-        self.ui.setting_download_comboBox.currentIndexChanged.connect(
-            self.setting_download_comboBox_func
+        self.ui.setting_update_download_comboBox.currentIndexChanged.connect(
+            self.setting_update_download_comboBox_func
         )
         # 悬赏封印
         self.ui.setting_xuanshangfengyin_comboBox.currentIndexChanged.connect(
@@ -128,9 +128,7 @@ class MainWindow(QMainWindow):
         logger.info(f"application path: {APP_PATH}")
         logger.info(f"resource path: {RESOURCE_DIR_PATH}")
         logger.info(f"[VERSION] {VERSION}")
-        if config.config_user:
-            for item in config.config_user.keys():
-                logger.info(f"{item} : {config.config_user[item]}")
+        logger.info(f"config_user: {config.config_user}")
         logger.ui("未正确使用所产生的一切后果自负，保持您的肝度与日常无较大差距，本程序目前仅兼容桌面版，\
 使用过程中会使用鼠标，如遇紧急情况可将鼠标划至屏幕左上角，触发安全警告强制停止")
         if self._check_enviroment():
@@ -148,7 +146,7 @@ class MainWindow(QMainWindow):
         remove_restart_bat_file()
         upgrade.check_latest()
         # 悬赏封印
-        if config.config_user.get("悬赏封印") == "关闭":
+        if config.config_user.xuanshangfengyin == "关闭":
             event_xuanshang_enable.clear()
         else:
             xuanshangfengyin.xuanshangfengyin.run()
@@ -297,13 +295,13 @@ class MainWindow(QMainWindow):
         """设置-更新模式-更改"""
         text = self.ui.setting_update_comboBox.currentText()
         logger.info(f"设置项：更新模式已更改为 {text}")
-        config.config_user_changed("更新模式", text)
+        config.config_user_changed("update", text)
 
-    def setting_download_comboBox_func(self) -> None:
+    def setting_update_download_comboBox_func(self) -> None:
         """设置-下载线路-更改"""
-        text = self.ui.setting_download_comboBox.currentText()
+        text = self.ui.setting_update_download_comboBox.currentText()
         logger.info(f"设置项：下载线路已更改为 {text}")
-        config.config_user_changed("下载线路", text)
+        config.config_user_changed("update_download", text)
 
     def setting_xuanshangfengyin_comboBox_func(self) -> None:
         """设置-悬赏封印-更改"""
@@ -311,7 +309,7 @@ class MainWindow(QMainWindow):
         if text == "关闭":
             logger.ui("成功关闭悬赏封印，重启程序后生效")
         logger.info(f"设置项：悬赏封印已更改为 {text}")
-        config.config_user_changed("悬赏封印", text)
+        config.config_user_changed("xuanshangfengyin", text)
 
     @log_function_call
     def check_game_handle(self) -> bool:
@@ -409,12 +407,12 @@ class MainWindow(QMainWindow):
             if now >= "21:00:00":
                 logger.ui("CD无限", "warn")
                 logger.ui("请尽情挑战，桌面版单账号上限100次")
+                self.ui.spinB_num.setValue(100)  # 桌面版上限100
             else:
                 logger.ui("CD6次", "warn")
                 logger.ui("默认6次，可在每日21时后无限挑战")
-            logger.ui("待开发：滚轮翻页")
-            self.ui.spinB_num.setValue(6)
-            self.ui.spinB_num.setRange(1, 200)  # 桌面版上限100
+                self.ui.spinB_num.setValue(6)
+            self.ui.spinB_num.setRange(1, 200)
         elif text == self._list_function[6]:
             # 7.道馆突破
             self._choice = 7
@@ -439,7 +437,7 @@ class MainWindow(QMainWindow):
             logger.ui(
                 "适用于限时活动及其他连点，请提前确保阵容完好并锁定\n\
 可替换resource/huodong下的素材\n\
-当前为「守缘合战」，选个人少的频道+打开活动设置里的高帧率，可适当提高稳定性"
+当前为「微光之守」"
             )
             self.ui.spinB_num.setValue(1)
             self.ui.spinB_num.setRange(1, 999)
@@ -470,7 +468,7 @@ class MainWindow(QMainWindow):
         elif text == self._list_function[12]:
             # 13.契灵
             self._choice = 13
-            logger.ui("次数为探查次数，选中“结契”按钮将在探查结束后自动结契场上的契灵")
+            logger.ui(qiling.QiLing().description)
             self.ui.stackedWidget.setCurrentIndex(4)  # 索引4，契灵
             self.ui.spinB_num.setValue(1)
             self.ui.button_qiling_tancha.setChecked(True)
@@ -651,7 +649,7 @@ class UpdateRecordWindow(QWidget):
         update_record()
 
     def textBrowser_update(self, text: str):
-        print("[update record]", text)  # 控制台调试输出
+        logger.info(f"[update record]\n{text}")
         self.ui.textBrowser.append(text)
         self.ui.textBrowser.ensureCursorVisible()
         self.ui.textBrowser.moveCursor(QTextCursor.MoveOperation.Start)

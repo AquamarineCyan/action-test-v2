@@ -17,7 +17,7 @@ from .application import (
     RESOURCE_FIGHT_PATH,
     SCREENSHOT_DIR_PATH
 )
-from .coordinate import Coor
+from .coordinate import AbsoluteCoor, Coor, RelativeCoor
 from .decorator import log_function_call
 from .event import event_thread, event_xuanshang, event_xuanshang_enable
 from .log import logger
@@ -48,7 +48,8 @@ class FightResource:
             "start_team",  # 组队挑战
             "tanchigui",  # 贪吃鬼
             "victory",  # 成功
-            "zhunbei",  # 准备-怀旧主题
+            "ready_old",  # 准备-怀旧主题
+            "ready_new",  # 准备-简约主题
         ]
 
 
@@ -310,7 +311,7 @@ def result() -> bool:
     """
     while True:
         if event_thread.is_set():
-            return
+            return None
         coor = get_coor_info(f"{RESOURCE_FIGHT_PATH}/victory")
         if coor.is_effective:
             logger.ui("胜利")
@@ -441,9 +442,11 @@ def finish_random_left_right(
         _finish_x2 = finish_right_x2
     x, y = random_coor(_finish_x1, _finish_x2, finish_y1, finish_y2).coor
 
+    if event_thread.is_set():
+        return Coor(0, 0)
     if is_click:
         click(Coor(x + window.window_left, y + window.window_top))
-    return Coor(x, y)
+    return RelativeCoor(x, y)
 
 
 def click(coor: Coor = None, dura: float = 0.5, sleeptime: float = 0) -> None:
@@ -459,16 +462,32 @@ def click(coor: Coor = None, dura: float = 0.5, sleeptime: float = 0) -> None:
         pyautogui.easeInOutQuad
     ]
     random.seed(time.time_ns())
-    x, y = pyautogui.position() if coor is None else (coor.x, coor.y)
-    pyautogui.moveTo(x, y, duration=dura, tween=random.choice(list_tween))
-    logger.info(f"click at ({x},{y})")
+
+    if coor is None:
+        _x, _y = pyautogui.position()
+    elif isinstance(coor, RelativeCoor):
+        _x, _y = coor.rela_to_abs().coor
+    elif isinstance(coor, AbsoluteCoor):
+        _x, _y = coor.coor
+    else:
+        _x, _y = coor.coor
+
+    # x, y = pyautogui.position() if coor is None else (coor.x, coor.y)
+    pyautogui.moveTo(_x, _y, duration=dura, tween=random.choice(list_tween))
+    logger.info(f"click at ({_x},{_y})")
     try:
         pyautogui.click()
     except pyautogui.FailSafeException:
         logger.ui("安全错误，可能是您点击了屏幕左上角，请重启后使用", "error")
 
 
-def check_click(file: str = None, is_click: bool = True, dura: float = 0.5, sleep_time: float = 0) -> None:
+def check_click(
+    file: str = None,
+        is_click: bool = True,
+        dura: float = 0.5,
+        sleep_time: float = 0,
+        timeout: int = None
+) -> None:
     """图像识别，并点击
 
     参数:
@@ -476,10 +495,18 @@ def check_click(file: str = None, is_click: bool = True, dura: float = 0.5, slee
         is_click (bool): 是否点击，默认是
         dura (float): 移动速度，默认0.5
         sleep_time (float): 延迟时间，默认0
+        timeout (int): 超时时间（秒）
     """
+    if timeout:
+        start_time = time.time()
     while True:
         if event_thread.is_set():
             return
+        if timeout:
+            current_time = time.time()
+            if current_time - start_time > timeout:
+                return
+
         coor = get_coor_info(file)
         if coor.is_effective:
             if is_click:
@@ -532,7 +559,7 @@ def screenshot(screenshot_path: str = "cache") -> bool:
 
     _file = _screenshot_path / f"screenshot-{time.strftime('%Y%m%d%H%M%S')}.png"
     try:
-        t1=datetime.now(timezone.utc)
+        t1 = datetime.now(timezone.utc)
         pyautogui.screenshot(
             imageFilename=_file,
             region=(
