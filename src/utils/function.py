@@ -87,13 +87,15 @@ def random_coor(x1: int, x2: int, y1: int, y2: int) -> Coor:
     return Coor(x, y)
 
 
-def random_sleep(minimum: int | float, maximum: int | float) -> None:
+def random_sleep(minimum: int | float = 1.0, maximum: int | float = None) -> None:
     """随机延时（秒）
 
     参数:
-        minimum (int): 最小值（含）
-        maximum (int): 最大值（不含）
+        minimum (int): 最小值（含），默认1.0
+        maximum (int): 最大值（不含），默认None
     """
+    if maximum is None:
+        maximum = minimum + 1
     _sleep_time = random_num(minimum, maximum)
     logger.info(f"sleep for {_sleep_time} seconds")
     time.sleep(_sleep_time)
@@ -137,7 +139,7 @@ def get_coor_info(file: Path | str) -> Coor:
         Coor: 成功，返回图像的全屏随机坐标；失败，返回(0,0)
     """
     _file_name = image_file_format(RESOURCE_DIR_PATH / file)
-    logger.info(f"looking for file: {_file_name}")
+    # logger.info(f"looking for file: {_file_name}")
     # 等待悬赏封印判定
     if event_thread.is_set():
         return Coor(0, 0)
@@ -649,7 +651,7 @@ def app_restart(is_upgrade: bool = False) -> None:
     Popen([RESTART_BAT_PATH])
     # 关闭当前exe程序
     logger.info("App Exiting...")
-    ms.sys_exit_update.emit(True)
+    ms.main.sys_exit.emit()
 
 
 def remove_restart_bat_file() -> None:
