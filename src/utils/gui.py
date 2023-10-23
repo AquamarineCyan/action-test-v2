@@ -6,15 +6,13 @@ import sys
 import time
 from contextlib import suppress
 from pathlib import Path
-from threading import Thread
 
 from PySide6.QtGui import QIcon, QPixmap, QTextCursor
-from PySide6.QtWidgets import (QDialogButtonBox, QMainWindow, QMessageBox,
-                               QPushButton, QWidget)
+from PySide6.QtWidgets import QDialogButtonBox, QMainWindow, QMessageBox, QPushButton, QWidget
 
 from ..package import *
 from ..ui.mainui import Ui_MainWindow
-from ..ui.updateui import Ui_Form as Ui_Update_Record
+from ..ui.update_record import Ui_Form as Ui_Update_Record
 from ..ui.upgrade_new_version import Ui_Form as Ui_Upgrade_New_Version
 from .application import APP_NAME, APP_PATH, RESOURCE_DIR_PATH, VERSION
 from .config import config, is_Chinese_Path
@@ -23,12 +21,19 @@ from .event import event_thread, event_xuanshang_enable
 from .function import FightResource, app_restart, remove_restart_bat_file
 from .log import log_clean_up, logger
 from .mysignal import global_ms as ms
+from .mythread import WorkThread
 from .update import update_record
 from .upgrade import upgrade
 from .window import window
 
+def get_global_icon():
+    """窗口图标"""
+    global_icon = QIcon()
+    global_icon.addPixmap(QPixmap("buzhihuo.ico"))
+    return global_icon
 
 class MainWindow(QMainWindow):
+    """主界面"""
     _list_function = [  # 功能列表
         "1.御魂副本",
         "2.永生之海副本",
@@ -53,10 +58,7 @@ class MainWindow(QMainWindow):
         # 初始化界面
         self.setFixedSize(550, 450)  # 固定宽高
         self.ui.setupUi(self)
-        # 窗口图标
-        icon = QIcon()
-        icon.addPixmap(QPixmap("buzhihuo.ico"))
-        self.setWindowIcon(icon)
+        self.setWindowIcon(get_global_icon())
         self.setWindowTitle(f"{APP_NAME} - v{VERSION}")  # 版本号显示
         # 初始化控件
         self.ui.combo_choice.addItems(self._list_function)
@@ -79,16 +81,16 @@ class MainWindow(QMainWindow):
         # 自定义信号
         # 弹窗更新
         ms.main.qmessagbox_update.connect(self.qmessagbox_update_func)
-        # 主界面信息文本更新
+        # 更新文本
         ms.main.text_print_update.connect(self.text_print_update_func)
-        # 主界面信息文本覆盖
+        # 覆盖文本
         ms.main.text_print_insert_update.connect(self.text_print_insert_func)
         # 运行状态更新
         ms.main.is_fighting_update.connect(self.is_fighting)
         # 完成情况文本更新
         ms.main.text_num_update.connect(self.text_num_update_func)
         # 退出程序
-        ms.main.sys_exit.connect(self.exit)
+        ms.main.sys_exit.connect(sys.exit)
         # 显示更新窗口
         ms.upgrade_new_version.show_ui.connect(self.show_upgrade_new_version_window)
 
@@ -181,7 +183,7 @@ class MainWindow(QMainWindow):
                             "是否更新重启，如有自己替换的素材，请在取消后手动解压更新包"
                         ) == QMessageBox.Yes:
                             logger.info("用户接受更新重启")
-                            Thread(target=upgrade.restart, daemon=True).start()
+                            WorkThread(func=upgrade.restart).start()
                         else:
                             logger.info("用户拒绝更新重启")
 
@@ -538,7 +540,7 @@ class MainWindow(QMainWindow):
                 case 9:  # 百鬼夜行
                     baiguiyexing.BaiGuiYeXing(n=_n).run()
                 case 10:  # 限时活动
-                    huodong.HuoDong(n=_n).run()
+                    huodong.HuoDong(n=_n).task_start()
                 case 11:  # 组队日轮副本
                     # 是否司机（默认否）
                     # 组队人数（默认2人）
@@ -632,27 +634,21 @@ class MainWindow(QMainWindow):
         self.upgrade_new_version_ui = UpgradeNewVersionWindow()
         self.upgrade_new_version_ui.show()
 
-    def exit(self, flag):
-        if flag:
-            sys.exit()
-
 
 class UpdateRecordWindow(QWidget):
-    """更新信息"""
+    """更新记录"""
 
     def __init__(self):
         super().__init__()
         self.ui = Ui_Update_Record()
         self.ui.setupUi(self)
-        icon = QIcon()
-        icon.addPixmap(QPixmap("buzhihuo.ico"))
-        self.setWindowIcon(icon)
+        self.setWindowIcon(get_global_icon())
         # 关联事件
-        ms.update_record.text_update.connect(self.textBrowser_update)
+        ms.update_record.text_update.connect(self.textBrowser_update_func)
         # 初始化
         update_record()
 
-    def textBrowser_update(self, text: str):
+    def textBrowser_update_func(self, text: str):
         logger.info(f"[update record]\n{text}")
         self.ui.textBrowser.append(text)
         self.ui.textBrowser.ensureCursorVisible()
@@ -666,9 +662,7 @@ class UpgradeNewVersionWindow(QWidget):
         super().__init__()
         self.ui = Ui_Upgrade_New_Version()
         self.ui.setupUi(self)
-        icon = QIcon()
-        icon.addPixmap(QPixmap("buzhihuo.ico"))
-        self.setWindowIcon(icon)
+        self.setWindowIcon(get_global_icon())
 
         button_update = QPushButton("下载更新", self)
         button_download = QPushButton("仅下载", self)
