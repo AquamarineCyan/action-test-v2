@@ -53,6 +53,21 @@ class FightResource:
         ]
 
 
+@log_function_call
+def random_normal(min: int | float, max: int | float) -> int:
+    """正态分布"""
+    mu = (min + max) / 2
+    sigma = (max-mu)/3
+    while True:
+        numb = random.gauss(mu, sigma)
+        if (numb > min and numb < max):
+            logger.info(f"index: {numb}")
+            break
+        else:
+            logger.info(f"out of index: {numb}")
+    return int(numb)
+
+
 def random_num(minimum: int | float, maximum: int | float) -> float:
     """返回给定范围的随机值        
 
@@ -81,8 +96,10 @@ def random_coor(x1: int, x2: int, y1: int, y2: int) -> Coor:
         Coor: 矩形区域内随机值
     """
     # TODO 返回坐标偏中心
-    x = random_num(x1, x2)
-    y = random_num(y1, y2)
+    # x = random_num(x1, x2)
+    x = random_normal(x1, x2)
+    # y = random_num(y1, y2)
+    y = random_normal(y1, y2)
     logger.info(f"random_coor: {x},{y}")
     return Coor(x, y)
 

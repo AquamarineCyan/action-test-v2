@@ -4,7 +4,7 @@
 """限时活动"""
 
 
-from ..utils.decorator import log_function_call, run_in_thread, time_count
+from ..utils.decorator import log_function_call
 from ..utils.event import event_thread
 from ..utils.function import (
     RESOURCE_FIGHT_PATH,
@@ -12,7 +12,6 @@ from ..utils.function import (
     check_scene,
     check_scene_multiple_once,
     click,
-    finish,
     finish_random_left_right,
     get_coor_info,
     random_sleep
@@ -126,5 +125,3 @@ class HuoDong(Package):
                     if _flag_title_msg:
                         logger.ui("请检查游戏场景", "warn")
                         _flag_title_msg = False
-
-        # logger.ui(f"已完成 {self.scene_name} {self.n}次")

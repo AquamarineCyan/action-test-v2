@@ -27,6 +27,14 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(550, 450)
+        palette = QPalette()
+        brush = QBrush(QColor(255, 255, 255, 255))
+        brush.setStyle(Qt.SolidPattern)
+        palette.setBrush(QPalette.Active, QPalette.Window, brush)
+        palette.setBrush(QPalette.Inactive, QPalette.Window, brush)
+        palette.setBrush(QPalette.Disabled, QPalette.Base, brush)
+        palette.setBrush(QPalette.Disabled, QPalette.Window, brush)
+        MainWindow.setPalette(palette)
         font = QFont()
         font.setFamilies([u"\u5b8b\u4f53"])
         MainWindow.setFont(font)
@@ -42,7 +50,7 @@ class Ui_MainWindow(object):
         self.tab_home.setObjectName(u"tab_home")
         self.gridLayout_tab_home = QGridLayout(self.tab_home)
         self.gridLayout_tab_home.setObjectName(u"gridLayout_tab_home")
-        self.gridLayout_tab_home.setContentsMargins(4, 6, 4, 4)
+        self.gridLayout_tab_home.setContentsMargins(4, 11, 4, 4)
         self.groupBox_info = QGroupBox(self.tab_home)
         self.groupBox_info.setObjectName(u"groupBox_info")
         self.gridLayout_groupBox_info = QGridLayout(self.groupBox_info)
@@ -224,41 +232,68 @@ class Ui_MainWindow(object):
         self.gridLayout_groupBox_basic = QGridLayout(self.groupBox_basic)
         self.gridLayout_groupBox_basic.setObjectName(u"gridLayout_groupBox_basic")
         self.gridLayout_groupBox_basic.setContentsMargins(20, -1, 22, -1)
-        self.spinB_num = QSpinBox(self.groupBox_basic)
-        self.spinB_num.setObjectName(u"spinB_num")
-        font3 = QFont()
-        font3.setFamilies([u"\u5b8b\u4f53"])
-        font3.setPointSize(10)
-        self.spinB_num.setFont(font3)
-
-        self.gridLayout_groupBox_basic.addWidget(self.spinB_num, 3, 1, 1, 1)
-
-        self.button_game_handle = QPushButton(self.groupBox_basic)
-        self.button_game_handle.setObjectName(u"button_game_handle")
-        self.button_game_handle.setFont(font3)
-
-        self.gridLayout_groupBox_basic.addWidget(self.button_game_handle, 4, 1, 1, 1)
-
+        self.horizontalLayout_groupBox_basic_1 = QHBoxLayout()
+        self.horizontalLayout_groupBox_basic_1.setObjectName(u"horizontalLayout_groupBox_basic_1")
         self.label_function = QLabel(self.groupBox_basic)
         self.label_function.setObjectName(u"label_function")
         self.label_function.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_groupBox_basic.addWidget(self.label_function, 1, 0, 1, 1)
+        self.horizontalLayout_groupBox_basic_1.addWidget(self.label_function)
 
         self.combo_choice = QComboBox(self.groupBox_basic)
         self.combo_choice.setObjectName(u"combo_choice")
         self.combo_choice.setFont(font1)
 
-        self.gridLayout_groupBox_basic.addWidget(self.combo_choice, 1, 1, 1, 1)
+        self.horizontalLayout_groupBox_basic_1.addWidget(self.combo_choice)
 
+        self.horizontalLayout_groupBox_basic_1.setStretch(0, 1)
+        self.horizontalLayout_groupBox_basic_1.setStretch(1, 3)
+
+        self.gridLayout_groupBox_basic.addLayout(self.horizontalLayout_groupBox_basic_1, 1, 0, 1, 1)
+
+        self.horizontalLayout_groupBox_basic_2 = QHBoxLayout()
+        self.horizontalLayout_groupBox_basic_2.setObjectName(u"horizontalLayout_groupBox_basic_2")
         self.label_numbers = QLabel(self.groupBox_basic)
         self.label_numbers.setObjectName(u"label_numbers")
         self.label_numbers.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_groupBox_basic.addWidget(self.label_numbers, 3, 0, 1, 1)
+        self.horizontalLayout_groupBox_basic_2.addWidget(self.label_numbers)
+
+        self.spin_times = QSpinBox(self.groupBox_basic)
+        self.spin_times.setObjectName(u"spin_times")
+        self.spin_times.setMinimumSize(QSize(60, 0))
+        font3 = QFont()
+        font3.setFamilies([u"\u5b8b\u4f53"])
+        font3.setPointSize(10)
+        self.spin_times.setFont(font3)
+        self.spin_times.setMaximum(999)
+
+        self.horizontalLayout_groupBox_basic_2.addWidget(self.spin_times)
+
+        self.horizontalSpacer_groupBox_basic = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_groupBox_basic_2.addItem(self.horizontalSpacer_groupBox_basic)
+
+        self.horizontalLayout_groupBox_basic_2.setStretch(0, 2)
+        self.horizontalLayout_groupBox_basic_2.setStretch(1, 2)
+        self.horizontalLayout_groupBox_basic_2.setStretch(2, 3)
+
+        self.gridLayout_groupBox_basic.addLayout(self.horizontalLayout_groupBox_basic_2, 3, 0, 1, 1)
+
+        self.horizontalLayout_groupBox_basic_3 = QHBoxLayout()
+        self.horizontalLayout_groupBox_basic_3.setObjectName(u"horizontalLayout_groupBox_basic_3")
+        self.button_game_handle = QPushButton(self.groupBox_basic)
+        self.button_game_handle.setObjectName(u"button_game_handle")
+        sizePolicy.setHeightForWidth(self.button_game_handle.sizePolicy().hasHeightForWidth())
+        self.button_game_handle.setSizePolicy(sizePolicy)
+        self.button_game_handle.setFont(font3)
+
+        self.horizontalLayout_groupBox_basic_3.addWidget(self.button_game_handle)
+
+
+        self.gridLayout_groupBox_basic.addLayout(self.horizontalLayout_groupBox_basic_3, 4, 0, 1, 1)
 
         self.gridLayout_groupBox_basic.setColumnStretch(0, 1)
-        self.gridLayout_groupBox_basic.setColumnStretch(1, 2)
 
         self.gridLayout_tab_home.addWidget(self.groupBox_basic, 0, 0, 1, 1)
 
@@ -281,6 +316,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 542, 423))
         self.verticalLayout_setting = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_setting.setObjectName(u"verticalLayout_setting")
         self.label_tip_setting_restart = QLabel(self.scrollAreaWidgetContents)
@@ -392,6 +428,24 @@ class Ui_MainWindow(object):
 
         self.vboxLayout.addLayout(self.horizontalLayout_setting_xuanshangfengyin)
 
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalSpacer_setting_remember_last_choice_left = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_setting_remember_last_choice_left)
+
+        self.setting_remember_last_choice_button = QCheckBox(self.groupBox_config)
+        self.setting_remember_last_choice_button.setObjectName(u"setting_remember_last_choice_button")
+
+        self.horizontalLayout.addWidget(self.setting_remember_last_choice_button)
+
+        self.horizontalSpacer_setting_remember_last_choice_right = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_setting_remember_last_choice_right)
+
+
+        self.vboxLayout.addLayout(self.horizontalLayout)
+
 
         self.verticalLayout_setting.addWidget(self.groupBox_config)
 
@@ -439,7 +493,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_setting.addWidget(self.label_GitHub_address)
 
-        self.verticalLayout_setting.setStretch(1, 1)
+        self.verticalLayout_setting.setStretch(1, 2)
         self.verticalLayout_setting.setStretch(2, 1)
         self.verticalLayout_setting.setStretch(3, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -486,16 +540,17 @@ class Ui_MainWindow(object):
         self.button_qiling_tancha.setText(QCoreApplication.translate("MainWindow", u"\u63a2\u67e5", None))
         self.button_qiling_jieqi.setText(QCoreApplication.translate("MainWindow", u"\u7ed3\u5951", None))
         self.groupBox_basic.setTitle(QCoreApplication.translate("MainWindow", u"\u57fa\u672c\u529f\u80fd", None))
-        self.button_game_handle.setText(QCoreApplication.translate("MainWindow", u"\u6e38\u620f\u68c0\u6d4b", None))
         self.label_function.setText(QCoreApplication.translate("MainWindow", u"\u529f\u80fd", None))
         self.combo_choice.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u8bf7\u9009\u62e9\u529f\u80fd", None))
         self.label_numbers.setText(QCoreApplication.translate("MainWindow", u"\u6b21\u6570", None))
+        self.button_game_handle.setText(QCoreApplication.translate("MainWindow", u"\u6e38\u620f\u68c0\u6d4b", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_home), QCoreApplication.translate("MainWindow", u"\u9996\u9875", None))
         self.label_tip_setting_restart.setText(QCoreApplication.translate("MainWindow", u"\u90e8\u5206\u8bbe\u7f6e\u9700\u8981\u91cd\u542f\u751f\u6548", None))
         self.groupBox_config.setTitle(QCoreApplication.translate("MainWindow", u"\u914d\u7f6e", None))
         self.setting_update_label.setText(QCoreApplication.translate("MainWindow", u"\u66f4\u65b0\u6a21\u5f0f", None))
         self.setting_update_download_label.setText(QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d\u7ebf\u8def", None))
         self.setting_xuanshangfengyin_label.setText(QCoreApplication.translate("MainWindow", u"\u60ac\u8d4f\u5c01\u5370", None))
+        self.setting_remember_last_choice_button.setText(QCoreApplication.translate("MainWindow", u"\u8bb0\u5fc6\u4e0a\u6b21\u6240\u9009\u529f\u80fd", None))
         self.button_restart.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f", None))
         self.button_update_record.setText(QCoreApplication.translate("MainWindow", u"\u66f4\u65b0\u8bb0\u5f55", None))
         self.label_GitHub_address.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" text-decoration: underline;\">https://github.com/AquamarineCyan/Onmyoji_Python</span></p></body></html>", None))
