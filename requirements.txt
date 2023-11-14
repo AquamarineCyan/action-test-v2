@@ -1,10 +1,10 @@
-httpx
-numpy
+httpx>=0.23.0
 opencv-python
-Pillow
 PyAutoGUI
-pyinstaller
+pydantic>=2.1.0
 PySide6>=6.5.1
 pywin32
 PyYAML
 win11toast
+
+pyinstaller

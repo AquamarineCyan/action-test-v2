@@ -12,6 +12,7 @@ build
 cache*
 dist
 doc
+lib
 log
 screenshot
 src/resource/test
