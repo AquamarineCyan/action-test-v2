@@ -14,7 +14,6 @@ import httpx
 from .application import APP_EXE_NAME, APP_NAME, APP_PATH, VERSION
 from .config import config
 from .decorator import log_function_call, run_in_thread
-# from .function import app_restart, write_upgrage_restart_bat
 from .log import logger
 from .mysignal import global_ms as ms
 from .restart import Restart
@@ -95,10 +94,10 @@ class Upgrade:
 
     def get_ghproxy_url(self) -> str:
         if "github.com" in self.browser_download_url:
-            return f"https://ghproxy.com/{self.browser_download_url}"
+            return f"https://mirror.ghproxy.com/{self.browser_download_url}"
         if "gitee.com" in self.browser_download_url:
             _github_url = self.browser_download_url.replace("gitee.com", "github.com")
-            return f"https://ghproxy.com/{_github_url}"
+            return f"https://mirror.ghproxy.com/{_github_url}"
 
     def _check_download_zip(self):
         logger.info(f"browser_download_url:{self.browser_download_url}")
@@ -237,7 +236,6 @@ class Upgrade:
         _restart = Restart()
         _restart.write_upgrage_restart_bat(self.zip_path)
         _restart.app_restart(is_upgrade=True)
-        
 
 
 upgrade = Upgrade()
