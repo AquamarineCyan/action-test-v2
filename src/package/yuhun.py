@@ -145,9 +145,6 @@ class YuHunTeam(YuHun):
                 logger.ui("结束")
                 return
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self):
         # 保留必需图像，提高识别效率
         _g_resource_list: list = [
@@ -171,9 +168,8 @@ class YuHunTeam(YuHun):
             scene, coor = check_scene_multiple_once(_resource_list)
             if scene is None:
                 continue
-            if "/" in scene:
-                scene = scene.split("/")[-1]
-            logger.scene(scene)
+            scene = self.scene_handle(scene)
+
             match scene:
                 case "xiezhanduiwu":
                     logger.ui('组队界面准备中')
@@ -292,9 +288,6 @@ class YuHunSingle(YuHun):
                 logger.ui("结束")
                 return
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self):
         """单人"""
         _g_resource_list: list = [
@@ -313,15 +306,11 @@ class YuHunSingle(YuHun):
         while self.n < self.max:
             if event_thread.is_set():
                 return
-
             _resource_list = _g_resource_list if _resource_list is None else _resource_list
             scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
             if scene is None:
                 continue
-            # if "/" in scene:
-                # scene = scene.split("/")[-1]
-            # logger.scene(scene)
-            self.scene_print(scene)
+            scene = self.scene_handle(scene)
 
             match scene:
                 case "title_10" | "title_11" | "title_12":

@@ -139,9 +139,6 @@ class YongShengZhiHaiTeam(YongShengZhiHai):
                 logger.ui("结束")
                 return
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self):
         # 保留必需图像，提高识别效率
         _g_resource_list: list = [

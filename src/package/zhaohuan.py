@@ -3,9 +3,8 @@
 # zhaohuan.py
 """普通召唤"""
 
-from src.utils.event import event_thread
-
 from ..utils.decorator import log_function_call, run_in_thread, time_count
+from ..utils.event import event_thread
 from ..utils.function import check_click, check_scene, random_sleep
 from ..utils.log import logger
 from .utils import Package
@@ -48,9 +47,6 @@ class ZhaoHuan(Package):
         """非第一次召唤"""
         check_click(f"{self.resource_path}/zaicizhaohuan")
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self) -> None:
         _flag_first = True  # 是否第一次
         logger.num(f"0/{self.max}")

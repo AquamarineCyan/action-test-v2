@@ -5,10 +5,10 @@
 
 import pyautogui
 
-from src.utils.event import event_thread
 from ..utils.application import RESOURCE_DIR_PATH
 from ..utils.coordinate import Coor
-from ..utils.decorator import log_function_call, run_in_thread, time_count
+from ..utils.decorator import log_function_call
+from ..utils.event import event_thread
 from ..utils.function import (
     check_click,
     check_finish_once,
@@ -165,9 +165,6 @@ class TanSuo(Package):
                     # 妖气封印
                     return
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self):
         _scene_list = [
             "tansuo_28_0",

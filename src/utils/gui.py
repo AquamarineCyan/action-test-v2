@@ -19,8 +19,6 @@ from .application import APP_NAME, APP_PATH, RESOURCE_DIR_PATH, VERSION
 from .config import config, is_Chinese_Path
 from .decorator import log_function_call, run_in_thread
 from .event import event_thread, event_xuanshang_enable
-# from .function import FightResource, app_restart, remove_restart_bat_file
-from .function import FightResource
 from .log import log_clean_up, logger
 from .mysignal import global_ms as ms
 from .mythread import WorkThread
@@ -175,13 +173,12 @@ class MainWindow(QMainWindow):
         if config.config_user.remember_last_choice > 0:
             self.ui.combo_choice.setCurrentIndex(config.config_user.remember_last_choice - 1)
         log_clean_up()
-        # remove_restart_bat_file()
         upgrade.check_latest()
         # 悬赏封印
         if config.config_user.xuanshangfengyin == "关闭":
             event_xuanshang_enable.clear()
         else:
-            xuanshangfengyin.xuanshangfengyin.run()
+            task_xuanshangfengyin.task_start()
 
     def qmessagbox_update_func(self, level: str, msg: str) -> None:
         match level:
@@ -276,34 +273,11 @@ class MainWindow(QMainWindow):
         返回:
             bool: 是否完整
         """
-        class Package:
-            def __init__(self, n: int = 0) -> None:
-                self.scene_name = "tests"
-                self.n: int = 0
-                self.max: int = n
-                self.resource_path = "tests"
-                self.resource_list: list = []
-
         logger.info("开始检查资源")
         if not Path(RESOURCE_DIR_PATH).exists():
             return False
-        P: Package
-        for P in [
-            FightResource(),
-            baiguiyexing.BaiGuiYeXing(),
-            daoguantupo.DaoGuanTuPo(),
-            huodong.HuoDong(),
-            jiejietupo.JieJieTuPo(),
-            qiling.QiLing(),
-            rilun.RiLun(),
-            tansuo.TanSuo(),
-            xuanshangfengyin.XuanShangFengYin(),
-            yeyuanhuo.YeYuanHuo(),
-            yongshengzhihai.YongShengZhiHai(),
-            yuhun.YuHun(),
-            yuling.YuLing(),
-            zhaohuan.ZhaoHuan()
-        ]:
+        _package_resource_list = get_package_resource_list()
+        for P in _package_resource_list:
             # 检查子文件夹
             if not Path(RESOURCE_DIR_PATH/P.resource_path).exists():
                 logger.ui("资源文件夹不存在！", "error")
@@ -313,7 +287,7 @@ class MainWindow(QMainWindow):
                 # 检查资源文件
                 for item in P.resource_list:
                     if not Path(RESOURCE_DIR_PATH/P.resource_path/f"{item}.png").exists():
-                        logger.ui(f"无{P.resource_path}/{item}.png资源文件", "error")
+                        logger.ui(f"未找到资源：{P.resource_path}/{item}.png", "error")
                         ms.main.qmessagbox_update.emit("ERROR", f"无{P.resource_path}/{item}.png资源文件")
                         return False
         logger.info("资源完整")
@@ -455,7 +429,7 @@ class MainWindow(QMainWindow):
             case 9:  # 百鬼夜行
                 logger.ui("仅适用于清票，且无法指定鬼王")
             case 10:  # 限时活动
-                logger.ui(huodong.HuoDong().description)
+                logger.ui(HuoDong().description)
             case 11:  # 组队日轮副本
                 logger.ui("请确保阵容稳定，仅适用于队友挂饼，不适用于极限卡速，默认打手\n待开发：手动第一次锁定阵容")
                 self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
@@ -473,7 +447,7 @@ class MainWindow(QMainWindow):
             case 12:  # 单人探索
                 logger.ui("提前准备好自动轮换和加成，仅单人探索")
             case 13:  # 契灵
-                logger.ui(qiling.QiLing().description)
+                logger.ui(QiLing().description)
                 self.ui.stackedWidget.setCurrentIndex(4)  # 索引4，契灵
                 self.ui.button_qiling_tancha.setChecked(True)
 
@@ -499,16 +473,16 @@ class MainWindow(QMainWindow):
                             _flag_passengers = int(
                                 self.ui.buttonGroup_passengers.checkedButton().text()
                             )
-                            yuhun.YuHunTeam(
+                            YuHunTeam(
                                 n=_n,
                                 flag_driver=_flag_driver,
                                 flag_passengers=_flag_passengers,
                                 flag_drop_statistics=_flag_drop_statistics,
-                            ).run()
+                            ).task_start()
                         case "单人":
-                            yuhun.YuHunSingle(
+                            YuHunSingle(
                                 n=_n, flag_drop_statistics=_flag_drop_statistics
-                            ).run()
+                            ).task_start()
                 case 2:  # 永生之海副本
                     _flag_drop_statistics = (
                         self.ui.button_yuhun_drop_statistics.isChecked()
@@ -519,30 +493,30 @@ class MainWindow(QMainWindow):
                                 self.ui.buttonGroup_driver.checkedButton().text()
                                 != "否"
                             )
-                            yongshengzhihai.YongShengZhiHaiTeam(
+                            YongShengZhiHaiTeam(
                                 n=_n,
                                 flag_driver=_flag_driver,
                                 flag_drop_statistics=_flag_drop_statistics,
-                            ).run()
+                            ).task_start()
                         case "单人":
                             pass
                 case 3:  # 业原火
-                    yeyuanhuo.YeYuanHuo(n=_n).run()
+                    YeYuanHuo(n=_n).task_start()
                 case 4:  # 御灵
-                    yuling.YuLing(n=_n).run()
+                    YuLing(n=_n).task_start()
                 case 5:  # 个人突破
-                    jiejietupo.JieJieTuPoGeRen(n=_n).run()
+                    JieJieTuPoGeRen(n=_n).task_start()
                 case 6:  # 寮突破
-                    jiejietupo.JieJieTuPoYinYangLiao(n=_n).run()
+                    JieJieTuPoYinYangLiao(n=_n).task_start()
                 case 7:  # 道馆突破
                     flag_guanzhan = self.ui.button_guanzhan.isChecked()
-                    daoguantupo.DaoGuanTuPo(flag_guanzhan=flag_guanzhan).run()
+                    DaoGuanTuPo(flag_guanzhan=flag_guanzhan).task_start()
                 case 8:  # 普通召唤
-                    zhaohuan.ZhaoHuan(n=_n).run()
+                    ZhaoHuan(n=_n).task_start()
                 case 9:  # 百鬼夜行
-                    baiguiyexing.BaiGuiYeXing(n=_n).run()
+                    BaiGuiYeXing(n=_n).task_start()
                 case 10:  # 限时活动
-                    huodong.HuoDong(n=_n).task_start()
+                    HuoDong(n=_n).task_start()
                 case 11:  # 组队日轮副本
                     # 是否司机（默认否）
                     # 组队人数（默认2人）
@@ -551,21 +525,21 @@ class MainWindow(QMainWindow):
                     _flag_passengers = int(
                         self.ui.buttonGroup_passengers.checkedButton().text()
                     )
-                    rilun.RiLun(
+                    RiLun(
                         n=_n,
                         flag_driver=_flag_driver,
                         flag_passengers=_flag_passengers,
-                    ).run()
+                    ).task_start()
                 case 12:  # 单人探索
-                    tansuo.TanSuo(n=_n).run()
+                    TanSuo(n=_n).task_start()
                 case 13:  # 契灵
                     _flag_tancha = self.ui.button_qiling_tancha.isChecked()
                     _flag_jieqi = self.ui.button_qiling_jieqi.isChecked()
-                    qiling.QiLing(
+                    QiLing(
                         n=_n,
                         _flag_tancha=_flag_tancha,
                         _flag_jieqi=_flag_jieqi
-                    ).run()
+                    ).task_start()
 
         def stop() -> None:
             """停止函数"""

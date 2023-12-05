@@ -3,9 +3,8 @@
 # yuling.py
 """御灵副本"""
 
-from src.utils.event import event_thread
-
-from ..utils.decorator import log_function_call, run_in_thread, time_count
+from ..utils.decorator import log_function_call
+from ..utils.event import event_thread
 from ..utils.function import (
     check_click,
     check_scene,
@@ -14,9 +13,9 @@ from ..utils.function import (
     random_sleep
 )
 from ..utils.log import logger
+from .utils import Package
 
-
-class YuLing:
+class YuLing(Package):
     """御灵副本"""
 
     @log_function_call
@@ -46,9 +45,6 @@ class YuLing:
         """开始"""
         check_click(f"{self.resource_path}/start")
 
-    @run_in_thread
-    @time_count
-    @log_function_call
     def run(self) -> None:
         if self.title():
             logger.num(f"0/{self.max}")
