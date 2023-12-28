@@ -1,6 +1,6 @@
 import time
 
-from ..utils.decorator import run_in_thread
+from ..utils.decorator import log_function_call, run_in_thread
 from ..utils.event import event_thread
 from ..utils.function import (
     RESOURCE_FIGHT_PATH,
@@ -49,7 +49,10 @@ class Package:
     """资源列表"""
     description: str = None
     """功能描述"""
+    fast_time: int = 0
+    """最快通关速度，用于中途等待"""
 
+    @log_function_call
     def __init__(self, n: int = 0) -> None:
         self.n: int = 0
         """当前次数"""
@@ -57,9 +60,11 @@ class Package:
         """总次数"""
         self.current_resource_list: list = None
         """当前使用的资源列表"""
+        self.current_scene: str = None
+        """当前场景"""
 
-    def get_coor_info(self, file):
-        return get_coor_info(f"{self.resource_path}/{file}")
+    def get_coor_info(self, file, *args, **kwargs):
+        return get_coor_info(f"{self.resource_path}/{file}", *args, **kwargs)
 
     def check_click(self, file, *args, **kwargs):
         return check_click(f"{self.resource_path}/{file}", *args, **kwargs)
@@ -74,9 +79,12 @@ class Package:
         logger.scene(scene)
 
     def scene_handle(self, scene: str = None) -> str:
+        if scene == None:
+            scene = self.current_scene
         logger.info(f"current scene: {scene}")
         if "/" in scene:
             scene = scene.split("/")[-1]
+        self.current_scene = scene
         return scene
 
     def log_current_scene_list(self) -> None:

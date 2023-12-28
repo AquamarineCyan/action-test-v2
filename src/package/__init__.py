@@ -2,6 +2,7 @@ from .baiguiyexing import BaiGuiYeXing
 from .daoguantupo import DaoGuanTuPo
 from .huodong import HuoDong
 from .jiejietupo import JieJieTuPo, JieJieTuPoGeRen, JieJieTuPoYinYangLiao
+from .juexing import JueXing
 from .qiling import QiLing
 from .rilun import RiLun
 from .tansuo import TanSuo
@@ -21,6 +22,7 @@ __all__ = [
     # "JieJieTuPo",
     "JieJieTuPoGeRen",
     "JieJieTuPoYinYangLiao",
+    "JueXing",
     "QiLing",
     "RiLun",
     "TanSuo",
@@ -28,9 +30,9 @@ __all__ = [
     "task_xuanshangfengyin",
     "YeYuanHuo",
     "YuLing",
-    # "YongShengZhiHai",
+    "YongShengZhiHai",
     "YongShengZhiHaiTeam",
-    # "YuHun",
+    "YuHun",
     "YuHunSingle",
     "YuHunTeam",
     "ZhaoHuan",
@@ -46,6 +48,7 @@ def get_package_resource_list():
         DaoGuanTuPo,
         HuoDong,
         JieJieTuPo,
+        JueXing,
         QiLing,
         RiLun,
         TanSuo,

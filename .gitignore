@@ -5,6 +5,7 @@
 build.bat
 config.yaml
 Onmyoji_Python.exe
+poetry.lock
 
 # dir
 artifacts
@@ -17,3 +18,4 @@ log
 screenshot
 src/resource/test
 test_code
+ocr

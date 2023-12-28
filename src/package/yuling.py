@@ -6,7 +6,6 @@
 from ..utils.decorator import log_function_call
 from ..utils.event import event_thread
 from ..utils.function import (
-    check_click,
     check_scene,
     finish,
     finish_random_left_right,
@@ -15,19 +14,24 @@ from ..utils.function import (
 from ..utils.log import logger
 from .utils import Package
 
+
 class YuLing(Package):
     """御灵副本"""
+    scene_name = "御灵副本"
+    resource_path = "yuling"
+    resource_list = [
+        "title",  # 限时活动特征图像
+        "start",  # 挑战
+    ]
+    description = """暗神龙-周二六日
+         暗白藏主-周三六日
+         暗黑豹-周四六
+         暗孔雀-周五六日
+         绘卷期间请减少使用"""
 
     @log_function_call
     def __init__(self, n: int = 0) -> None:
-        self.scene_name: str = "御灵副本"
-        self.n: int = 0  # 当前次数
-        self.max: int = n  # 总次数
-        self.resource_path: str = "yuling"  # 路径
-        self.resource_list: list = [  # 资源列表
-            "title",  # 限时活动特征图像
-            "start"  # 挑战
-        ]
+        super().__init__(n)
 
     def title(self) -> bool:
         """场景"""
@@ -43,27 +47,24 @@ class YuLing(Package):
 
     def start(self) -> None:
         """开始"""
-        check_click(f"{self.resource_path}/start")
+        self.check_click("start")
 
     def run(self) -> None:
-        if self.title():
-            logger.num(f"0/{self.max}")
-            while self.n < self.max:
-                if event_thread.is_set():
-                    return
-
-                random_sleep(1, 2)
-                # 开始
-                self.start()
-                # 结束
-                finish()
-                random_sleep(1, 2)
-                # 结算
-                finish_random_left_right(is_multiple_drops_y=True)
-                random_sleep(1, 3)
-                self.n += 1
-                logger.num(f"{self.n}/{self.max}")
-                # TODO 强制等待，后续优化
-                if self.n in {12, 25, 39, 59, 73}:
-                    random_sleep(10, 20)
-        logger.ui(f"已完成 {self.scene_name} {self.n}次")
+        self.title()
+        logger.num(f"0/{self.max}")
+        while self.n < self.max:
+            if event_thread.is_set():
+                return
+            random_sleep()
+            # 开始
+            self.start()
+            # 结束
+            finish()
+            random_sleep()
+            # 结算
+            finish_random_left_right(is_multiple_drops_y=True)
+            random_sleep()
+            self.done()
+            # TODO 强制等待，后续优化
+            if self.n in {12, 25, 39, 59, 73}:
+                random_sleep(10, 20)

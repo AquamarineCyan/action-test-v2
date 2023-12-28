@@ -9,7 +9,6 @@ from ..utils.event import event_thread
 from ..utils.function import (
     RESOURCE_FIGHT_PATH,
     check_finish_once,
-    check_scene_multiple_once,
     click,
     finish_random_left_right,
     get_coor_info,
@@ -94,13 +93,15 @@ class QiLing(Package):
 
     @log_function_call
     def run_tancha(self):
-        _resource_list = ["start_tancha"]
+        self.current_resource_list = [f"{self.resource_path}/start_tancha"]
+        self.log_current_scene_list()
+
         while self.n < self.max:
             if event_thread.is_set():
                 return
-            scene, coor = check_scene_multiple_once(_resource_list, self.resource_path)
+            scene, coor = self.check_scene_multiple_once()
             scene = self.scene_handle(scene)
-            
+
             match scene:
                 # case "title":
                 # pass
@@ -125,7 +126,10 @@ class QiLing(Package):
     def run_jieqi(self):
         """结契"""
         _n: int = 0
-        self.current_resource_list = ["start_tancha", "start_jieqi"]
+        self.current_resource_list = [
+            f"{self.resource_path}/start_tancha",
+            f"{self.resource_path}/start_jieqi",
+        ]
         _flag_done_once: bool = False
 
         while _n <= 5:

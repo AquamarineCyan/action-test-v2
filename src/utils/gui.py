@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         "11.组队日轮副本",
         "12.单人探索",
         "13.契灵",
+        "14.觉醒副本",
     ]
     _choice: int  # 功能
 
@@ -375,8 +376,7 @@ class MainWindow(QMainWindow):
 
         match self._choice:
             case 1:  # 御魂副本
-                logger.ui("请确保阵容稳定，已适配组队/单人 魂土、神罚副本\
-                    新设备第一次接受邀请会有弹窗，需手动勾选“不再提醒”")
+                logger.ui(YuHun.description)
                 self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
 
                 self.ui.button_mode_team.setEnabled(True)
@@ -389,7 +389,7 @@ class MainWindow(QMainWindow):
                 self.ui.button_passengers_3.setEnabled(True)
                 self.ui.button_passengers_2.setChecked(True)
             case 2:  # 组队永生之海副本
-                logger.ui("默认打手30次\n阴阳师技能自行选择，如晴明灭\n待开发：手动第一次锁定阵容")
+                logger.ui(YongShengZhiHai.description)
                 self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
                 self.ui_spin_times_set_value_func(30)
                 self.ui.button_mode_team.setChecked(True)
@@ -401,12 +401,12 @@ class MainWindow(QMainWindow):
                 self.ui.button_passengers_2.setEnabled(False)
                 self.ui.button_passengers_3.setEnabled(False)
             case 3:  # 业原火副本
-                logger.ui("默认为“痴”，有“贪”“嗔”需求的，可替换resource/yeyuanhuo路径下start.png")
+                logger.ui(YeYuanHuo.description)
             case 4:  # 御灵副本
-                logger.ui("暗神龙-周二六日\n暗白藏主-周三六日\n暗黑豹-周四六\n暗孔雀-周五六日\n绘卷期间请减少使用")
+                logger.ui(YuLing.description)
                 self.ui_spin_times_set_value_func(1, 1, 400)  # 桌面版上限300
             case 5:  # 个人突破
-                logger.ui("默认3胜刷新，上限30")
+                logger.ui(JieJieTuPoGeRen.description)
                 # self.ui.stackedWidget.setCurrentIndex(2)  # 索引2，结界突破
                 self.ui_spin_times_set_value_func(1, 1, 30)
             case 6:  # 寮突破
@@ -421,17 +421,16 @@ class MainWindow(QMainWindow):
                     _current = 6
                 self.ui_spin_times_set_value_func(_current, 1, 200)
             case 7:  # 道馆突破
-                logger.ui("目前仅支持正在进行中的道馆突破，无法实现跳转道馆场景\n待开发：冷却时间、观战助威")
+                logger.ui(DaoGuanTuPo.description)
                 self.ui.stackedWidget.setCurrentIndex(3)  # 索引3，道馆突破
                 self.ui.spin_times.setEnabled(False)
             case 8:  # 普通召唤
-                logger.ui("普通召唤，请选择十连次数")
+                logger.ui(ZhaoHuan.description)
             case 9:  # 百鬼夜行
-                logger.ui("仅适用于清票，且无法指定鬼王")
+                logger.ui(BaiGuiYeXing.description)
             case 10:  # 限时活动
-                logger.ui(HuoDong().description)
+                logger.ui(HuoDong.description)
             case 11:  # 组队日轮副本
-                logger.ui("请确保阵容稳定，仅适用于队友挂饼，不适用于极限卡速，默认打手\n待开发：手动第一次锁定阵容")
                 self.ui.stackedWidget.setCurrentIndex(1)  # 索引1，御魂
                 self.ui_spin_times_set_value_func(50)
 
@@ -445,11 +444,13 @@ class MainWindow(QMainWindow):
                 self.ui.button_passengers_3.setEnabled(True)
                 self.ui.button_passengers_2.setChecked(True)
             case 12:  # 单人探索
-                logger.ui("提前准备好自动轮换和加成，仅单人探索")
+                logger.ui(TanSuo.description)
             case 13:  # 契灵
-                logger.ui(QiLing().description)
+                logger.ui(QiLing.description)
                 self.ui.stackedWidget.setCurrentIndex(4)  # 索引4，契灵
                 self.ui.button_qiling_tancha.setChecked(True)
+            case 14:  # 觉醒副本
+                logger.ui(JueXing.description)
 
     def start_stop(self) -> None:
         """开始&停止按钮"""
@@ -540,6 +541,8 @@ class MainWindow(QMainWindow):
                         _flag_tancha=_flag_tancha,
                         _flag_jieqi=_flag_jieqi
                     ).task_start()
+                case 14:  # 觉醒副本
+                    JueXing(n=_n).task_start()
 
         def stop() -> None:
             """停止函数"""
