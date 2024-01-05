@@ -13,7 +13,8 @@ CONFIG_PATH: Path = APP_PATH / "config.yaml"
 """配置文件路径"""
 LOG_DIR_PATH: Path = APP_PATH / "log"
 """日志文件夹路径"""
-LOG_DIR_PATH.mkdir(parents=True, exist_ok=True)
+if not LOG_DIR_PATH.exists():
+    LOG_DIR_PATH.mkdir(parents=True)
 
 RESOURCE_DIR_PATH: Path = None
 """资源/素材文件夹路径"""
