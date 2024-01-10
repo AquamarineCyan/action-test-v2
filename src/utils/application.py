@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "1.7.11"
+VERSION: str = "1.7.12"
 """版本号"""
 APP_NAME: str = "Onmyoji_Python"
 """程序名称"""
@@ -29,6 +29,8 @@ RESOURCE_FIGHT_PATH = RESOURCE_DIR_PATH / "fight"
 """通用战斗资源路径"""
 SCREENSHOT_DIR_PATH: Path = APP_PATH / "screenshot"
 """截图文件夹路径"""
+USER_DATA_DIR_PATH: Path = APP_PATH / "data"
+"""用户数据文件夹路径"""
 
 
 class Connect:

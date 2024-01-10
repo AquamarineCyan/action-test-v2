@@ -2,18 +2,14 @@
 *.pyc
 *.xml
 .gitattributes
-build.bat
 config.yaml
 Onmyoji_Python.exe
-poetry.lock
 
 # dir
-artifacts
+.vscode
 build
-cache*
 data
 dist
-doc
 lib
 log
 screenshot

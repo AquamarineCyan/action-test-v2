@@ -1,14 +1,13 @@
 import json
-import os
 
 import httpx
 
-from .application import VERSION, Connect
+from .application import Connect, USER_DATA_DIR_PATH, VERSION
 from .mysignal import global_ms as ms
 
 __all__ = ["update_record", "get_update_info"]
 
-UPDATE_INFO_FILE = "data/update_info.json"
+UPDATE_INFO_FILE = USER_DATA_DIR_PATH / "update_info.json"
 
 
 def json_read(file_path: str):
@@ -41,16 +40,17 @@ def save_update_info(_file):
 
 def get_update_info():
     """获取更新记录"""
-    if not os.path.exists("data"):
-        os.mkdir("data")
+    if not USER_DATA_DIR_PATH.exists():
+        USER_DATA_DIR_PATH.mkdir(parents=True)
 
-    _update_file = UPDATE_INFO_FILE
-    if os.path.exists(_update_file):
-        _update_info = json_read(_update_file)
-        if _update_info[0]["version"] == VERSION:
+    _update_info_file = UPDATE_INFO_FILE
+    if _update_info_file.exists():
+        _update_info = json_read(_update_info_file)
+        _version = ".".join(VERSION.split(".")[:3])  # 基础版本号
+        if _update_info[0]["version"] == _version:
             return
 
-    save_update_info(_update_file)
+    save_update_info(_update_info_file)
 
 
 def update_record():
