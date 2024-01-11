@@ -32,7 +32,7 @@ jobs:
             dir
             cd output
             dir
-            cd src\resource\
+            cd ..\src\resource\
             dir
       
       - name: Upload build
