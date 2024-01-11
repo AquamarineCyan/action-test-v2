@@ -27,7 +27,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       
       - name: Build
-        run: build.bat
+        run: |
+            poetry run pyinstaller main.spec --clean --noconfirm --distpath .
+            dir
       
       - name: Upload build
         uses: actions/upload-artifact@v4.0.0
