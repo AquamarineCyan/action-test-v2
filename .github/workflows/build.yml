@@ -29,9 +29,9 @@ jobs:
       - name: Build
         run: |
             poetry run pyinstaller main.spec --clean --noconfirm --distpath .
-            ren output\output.exe Onmyoji_Python.exe
             cd output
             dir
+            # ren output.exe Onmyoji_Python.exe
       
       - name: Upload build
         uses: actions/upload-artifact@v4.0.0
