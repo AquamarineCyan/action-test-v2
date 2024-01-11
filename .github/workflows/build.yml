@@ -29,9 +29,11 @@ jobs:
       - name: Build
         run: |
             poetry run pyinstaller main.spec --clean --noconfirm --distpath .
+            dir
             cd output
             dir
-            # ren output.exe Onmyoji_Python.exe
+            cd src\resource\
+            dir
       
       - name: Upload build
         uses: actions/upload-artifact@v4.0.0
@@ -39,5 +41,5 @@ jobs:
           name: ${{ env.EXE_NAME }}
           path: |
             output
-            # ${{ env.EXE_NAME }}.exe
-            # lib/
+            buzhihuo.ico
+            src\resource\
