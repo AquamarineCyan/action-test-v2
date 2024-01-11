@@ -29,6 +29,8 @@ jobs:
       - name: Build
         run: |
             poetry run pyinstaller main.spec --clean --noconfirm --distpath .
+            ren output\output.exe Onmyoji_Python.exe
+            cd output
             dir
       
       - name: Upload build
@@ -36,5 +38,6 @@ jobs:
         with:
           name: ${{ env.EXE_NAME }}
           path: |
-            ${{ env.EXE_NAME }}.exe
-            lib/
+            output
+            # ${{ env.EXE_NAME }}.exe
+            # lib/
