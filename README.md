@@ -49,8 +49,8 @@
     - 本项目 [releases](https://github.com/AquamarineCyan/Onmyoji_Python/releases)
     
     - 备选下载链接 [releases[gitee]](https://gitee.com/AquamarineCyan/Onmyoji_Python/releases)
-    > [!NOTE]
-    > 
+    > [! NOTE]
+    >  
     > 由于`gitee`的`releases`存在100M大小的限制，该链接提供的是增量包。\
     如果遇到根目录下没有`ocr`文件夹，使用程序内自带的`ghproxy`更新下载，或者手动下载本项目[releases](https://github.com/AquamarineCyan/Onmyoji_Python/releases)即可。
 
