@@ -126,8 +126,8 @@ class GameWindow:
         if _window_number == 0:
             logger.ui("未找到游戏窗口", "error")
             return
-        elif _window_number > 1:
-            _rect = self.get_top_window_handle()
+        # elif _window_number > 1:
+        _rect = self.get_top_window_handle()
 
         self.update_game_window_rect(_rect)
         self.window_info_display()

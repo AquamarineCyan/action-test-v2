@@ -15,6 +15,7 @@ from .application import (
     RESOURCE_FIGHT_PATH,
     SCREENSHOT_DIR_PATH
 )
+from .application import USER_DATA_DIR_PATH
 from .coordinate import AbsoluteCoor, Coor, RelativeCoor
 from .decorator import log_function_call
 from .event import event_thread, event_xuanshang, event_xuanshang_enable
@@ -101,6 +102,7 @@ def image_file_format(file: Path | str) -> str:
     返回:
         str: filename
     """
+    # file一般会带上所属的子素材文件夹名称
     if isinstance(file, str):
         _file = f"{file}.png" if file[-4:] not in [".png", ".jpg"] else file
     elif isinstance(file, Path):
@@ -109,8 +111,16 @@ def image_file_format(file: Path | str) -> str:
         else:
             _file = file.__str__()
     # 即使传了RESOURCE_FIGHT_PATH，Pathlib会自动合并相同路径
-    if Path(RESOURCE_DIR_PATH / _file).exists():
-        return _file
+    _full_path = RESOURCE_DIR_PATH / _file
+    _full_path_user = (USER_DATA_DIR_PATH / "myresource").joinpath(*_full_path.parts[-2:])
+    # 检查用户素材
+    if _full_path_user.exists():
+        logger.info(f"使用用户素材{_full_path_user}")
+        return str(_full_path_user)
+    elif _full_path.exists():
+        return str(_full_path)
+    # if Path(RESOURCE_DIR_PATH / _file).exists():
+    #     return _file
     else:
         logger.warn(f"no such file {_file}")
 
@@ -139,7 +149,7 @@ def get_coor_info(
         event_xuanshang.wait()
 
     _file_name = image_file_format(RESOURCE_DIR_PATH / file)
-    logger.debug(f"looking for file: {_file_name}")
+    # logger.debug(f"looking for file: {_file_name}")
     if region != (0, 0, 0, 0):
         logger.debug(_region)
     _region = (  # TODO need test
@@ -364,7 +374,7 @@ def result_while() -> bool | None:
 
 
 @log_function_call
-def finish() -> bool:
+def finish() -> bool:  # TODO rename `check_finish`
     """结束/掉落判断
 
     返回:
@@ -400,6 +410,7 @@ def check_finish_once() -> bool | None:
     return None
 
 
+@log_function_call
 def finish_random_left_right(
     is_click: bool = True,
     is_multiple_drops_x: bool = False,
