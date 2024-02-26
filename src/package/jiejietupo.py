@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# jiejietupo.py
-"""结界突破"""
-
 from pathlib import Path
 
 import pyautogui
@@ -13,8 +8,8 @@ from ..utils.decorator import log_function_call
 from ..utils.event import event_thread
 from ..utils.function import (
     RESOURCE_FIGHT_PATH,
+    KeyBoard,
     check_click,
-    check_scene,
     click,
     finish,
     finish_random_left_right,
@@ -31,6 +26,7 @@ from enum import Enum
 
 
 class LineupState(Enum):
+    """阵容锁定状态"""
     NONE = 0
     LOCK = 1
     UNLOCK = 2
@@ -46,10 +42,12 @@ class JieJieTuPo(Package):
         "fighting_fail",  # TODO 战斗失败
         "geren",  # 个人突破
         "jingong",  # 进攻
-        "queding",
+        "lock",  # 阵容锁定
+        "queding",  # 刷新-确定
         "shuaxin",  # 刷新-个人突破
         "title",  # 突破界面
         "tupojilu",  # 突破记录-阴阳寮突破
+        "unlock",  # 阵容解锁
         "victory",  # 攻破
         "xunzhang_0",  # 勋章数0
         "xunzhang_1",  # 勋章数1
@@ -167,32 +165,13 @@ class JieJieTuPo(Package):
         click(coor)
         self.check_click("jingong")
         return
-        while True:
-            if event_thread.is_set():
-                return
-            coor = self.get_coor_info("jingong")
-            if coor.is_effective:
-                click(coor)
-                return
 
     def fighting_proactive_failure_once(self):
         """主动失败一次"""
-        while True:
-            if event_thread.is_set():
-                return
-            pyautogui.press("esc")
-            coor = self.get_coor_info("fighting_fail")
-            if coor.is_effective:
-                pyautogui.press("enter")
-                logger.ui("手动退出")
-                return
-        if coor.is_zero:
-            return False
-            # if check_scene(f"{self.resource_path}/fighting_fail"):
-            # pyautogui.press("enter")
-            # logger.ui("手动退出")
-            # break
-            # random_sleep(0, 1)
+        KeyBoard.esc()
+        random_sleep()
+        KeyBoard.enter()
+        logger.ui("手动退出")
 
 
 class JieJieTuPoGeRen(JieJieTuPo):
@@ -204,7 +183,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
     间隔高30
     """
     scene_name = "个人突破"
-    description = "默认3胜刷新，上限30"
+    description = "默认3胜刷新，保级第一轮将会刷新，请注意当前的胜利次数"
     tupo_geren_x = {
         1: 215,
         2: 515,
@@ -239,7 +218,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
         返回:
             勋章个数列表
         """
-        logger.ui("遍历结界勋章中......")
+        logger.ui("正在遍历结界勋章")
         alist = [0]  # 第一个数固定为0，方便后续9个计数
         for i in range(1, 10):
             if event_thread.is_set():
@@ -385,9 +364,9 @@ class JieJieTuPoGeRen(JieJieTuPo):
         logger.ui("已解锁阵容")
 
         # 获得每个结界的勋章数
-        _list_xunzhang = self.list_num_xunzhang()
-        for i in range(1, len(_list_xunzhang)):
-            if _list_xunzhang[i] != -1:
+        self.list_xunzhang = self.list_num_xunzhang()
+        for i in range(1, len(self.list_xunzhang)):
+            if self.list_xunzhang[i] != -1:
                 logger.ui(f"{i} 可进攻")
                 break
 
@@ -404,9 +383,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
             if coor.is_zero:
                 continue
             random_sleep(0.4, 0.8)
-            pyautogui.press("esc")
-            random_sleep(0.4, 0.8)
-            pyautogui.press("enter")
+            self.fighting_proactive_failure_once()
             count += 1
             logger.ui(f"current count: {count}")
             if count >= count_max:
@@ -416,10 +393,10 @@ class JieJieTuPoGeRen(JieJieTuPo):
 
             self.check_click("zaicitiaozhan")
             random_sleep(0.4, 0.8)
-            pyautogui.press("enter")
+            KeyBoard.enter()
 
         random_sleep(2)
-        self.check_click("shuaxin", is_click=False)
+        self.check_click("fangshoujilu", is_click=False)
         _state, _coor = self.get_lineup_state()
         if _state == LineupState.UNLOCK:
             click(_coor)
@@ -483,11 +460,10 @@ class JieJieTuPoGeRen(JieJieTuPo):
                 return
 
             self.check_click("fangshoujilu", is_click=False)
-            self.list_xunzhang = self.list_num_xunzhang()
-            self.tupo_victory = self.list_xunzhang.count(-1)
-
             # 只需要刷新
             if self.flag_refresh_rule:
+                self.list_xunzhang = self.list_num_xunzhang()
+                self.tupo_victory = self.list_xunzhang.count(-1)
                 if self.tupo_victory == 3:
                     self.refresh()
                 elif self.tupo_victory < 3:
@@ -503,13 +479,14 @@ class JieJieTuPoGeRen(JieJieTuPo):
                     logger.ui(f"第{_}次降级")
                     self.lower_level()
                 self.keep_level()
+                self.tupo_victory = self.list_xunzhang.count(-1)
                 # 按顺序打九
                 for i in range(1, len(self.list_xunzhang)):
                     if self.n >= self.max:
                         break
                     if self.list_xunzhang[i] == -1:
                         continue
-                    self.check_click("shuaxin", is_click=False)
+                    self.check_click("fangshoujilu", is_click=False)
                     logger.ui(f"{i} 可进攻")
                     self.fighting_tupo(
                         self.tupo_geren_x[(i + 2) % 3 + 1],
@@ -517,6 +494,8 @@ class JieJieTuPoGeRen(JieJieTuPo):
                     )
                     # 只有成功才会退出
                     while True:
+                        if event_thread.is_set():
+                            return
                         # TODO 失败超过一定次数视为打不过
                         if finish():
                             self.done()
@@ -528,7 +507,7 @@ class JieJieTuPoGeRen(JieJieTuPo):
                         else:
                             self.check_click("zaicitiaozhan")
                             random_sleep()
-                            pyautogui.press("enter")
+                            KeyBoard.enter()
 
                     random_sleep(4)
 
@@ -616,7 +595,7 @@ class JieJieTuPoYinYangLiao(JieJieTuPo):
                 if coor.is_effective:
                     logger.ui("当前结界已被攻破", "warn")
                     i += 1
-                    pyautogui.press("esc")
+                    KeyBoard.esc()
                     continue
 
                 flag = 1 if finish() else 0

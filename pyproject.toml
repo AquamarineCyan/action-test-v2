@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "onmyoji-python"
-version = "1.7.12"
+version = "1.7.13"
 description = "auto for Onmyoji"
 authors = ["AquamarineCyan <1057424730@qq.com>"]
 readme = "README.md"
@@ -9,10 +9,11 @@ packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-httpx = "^0.25.2"
+apscheduler = "^3.10.4"
+httpx = "^0.26.0"
 opencv-python = "^4.9.0.80"
 pyautogui = "^0.9.54"
-pydantic = "^2.5.3"
+pydantic = "^2.6.1"
 pyside6 = "^6.6.1"
 pywin32 = "^306"
 pyyaml = "^6.0.1"
@@ -20,8 +21,8 @@ win11toast = "^0.34"
 
 
 [tool.poetry.group.dev.dependencies]
-pyinstaller = "^6.3.0"
-pytest = "^7.4.4"
+pyinstaller = "^6.4.0"
+pytest = "^8.0.0"
 
 [[tool.poetry.source]]
 name = "aliyun"

@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# function.py
-"""通用函数库"""
-
 import random
 import time
 from datetime import datetime, timezone
@@ -13,12 +8,12 @@ import pyautogui
 from .application import (
     RESOURCE_DIR_PATH,
     RESOURCE_FIGHT_PATH,
-    SCREENSHOT_DIR_PATH
+    SCREENSHOT_DIR_PATH,
+    USER_DATA_DIR_PATH
 )
-from .application import USER_DATA_DIR_PATH
 from .coordinate import AbsoluteCoor, Coor, RelativeCoor
 from .decorator import log_function_call
-from .event import event_thread, event_xuanshang, event_xuanshang_enable
+from .event import event_thread, event_xuanshang
 from .log import logger
 from .window import window
 
@@ -26,18 +21,17 @@ RESOURCE_FIGHT_PATH = RESOURCE_FIGHT_PATH
 """通用战斗资源路径"""
 
 
-@log_function_call
 def random_normal(min: int | float, max: int | float) -> int:
     """正态分布"""
     mu = (min + max) / 2
-    sigma = (max-mu)/3
+    sigma = (max - mu) / 3
     while True:
         numb = random.gauss(mu, sigma)
         if (numb > min and numb < max):
-            logger.info(f"index: {numb}")
+            logger.info(f"normal index: {numb}")
             break
         else:
-            logger.info(f"out of index: {numb}")
+            logger.info(f"normal out of index: {numb}")
     return int(numb)
 
 
@@ -119,10 +113,8 @@ def image_file_format(file: Path | str) -> str:
         return str(_full_path_user)
     elif _full_path.exists():
         return str(_full_path)
-    # if Path(RESOURCE_DIR_PATH / _file).exists():
-    #     return _file
     else:
-        logger.warn(f"no such file {_file}")
+        logger.ui(f"no such file {_file}", "warn")
 
 
 def get_coor_info(
@@ -130,6 +122,8 @@ def get_coor_info(
     region: tuple[int, int, int, int] = (0, 0, 0, 0)
 ) -> AbsoluteCoor:
     """图像识别，返回图像的全屏随机坐标
+
+    # TODO 返回随机/中心坐标
 
     参数:
         file (Path | str): 图像名称
@@ -145,8 +139,7 @@ def get_coor_info(
     if event_thread.is_set():
         return Coor(0, 0)
     # 等待悬赏封印判定
-    if event_xuanshang_enable.is_set():
-        event_xuanshang.wait()
+    event_xuanshang.wait()
 
     _file_name = image_file_format(RESOURCE_DIR_PATH / file)
     # logger.debug(f"looking for file: {_file_name}")
@@ -214,25 +207,29 @@ def get_coor_info_center(file: Path | str, is_log: bool = True) -> Coor:
         return Coor(0, 0)
 
 
-def check_scene(file: str, scene_name: str = None) -> bool:  # FIXME remove
-    """场景判断
+def check_scene(file: str, timeout: float = 0) -> bool:
+    """场景判断，找到场景返回True，超时返回False，否则将一直判断
 
     参数:
         file (str): 图像文件
-        scene_name (str): 场景描述
+        timeout (float): 超时时间
 
     返回:
-        bool: 是否为指定场景
+        bool: 结果
     """
+    if timeout:
+        start_time = time.time()
     while True:
         if event_thread.is_set():
-            return
-        coor = get_coor_info(file)
-        if coor.is_zero:
             return False
-        if scene_name:
-            logger.scene(scene_name)
-        return True
+        if timeout:
+            current_time = time.time()
+            if current_time - start_time > timeout:
+                return False
+
+        coor = get_coor_info(file)
+        if coor.is_effective:
+            return True
 
 
 def check_scene_multiple_once(scene: list, resource_path: str = None) -> tuple[str | None, Coor]:
@@ -501,8 +498,8 @@ def check_click(
     is_click: bool = True,
     dura: float = 0.5,
     sleep_time: float = 0,
-    timeout: int = None
-) -> None:
+    timeout: float = 0
+) -> bool:
     """图像识别，并点击
 
     参数:
@@ -510,24 +507,27 @@ def check_click(
         is_click (bool): 是否点击，默认是
         dura (float): 移动速度，默认0.5
         sleep_time (float): 延迟时间，默认0
-        timeout (int): 超时时间（秒）
+        timeout (float): 超时时间（秒）
+
+    返回:
+        bool: 结果
     """
     if timeout:
         start_time = time.time()
     while True:
         if event_thread.is_set():
-            return
+            return False
         if timeout:
             current_time = time.time()
             if current_time - start_time > timeout:
-                return
+                return False
 
         coor = get_coor_info(file)
         if coor.is_effective:
             if is_click:
                 click(coor, dura, sleep_time)
             logger.info("move to right coor successfully")
-            return
+            return True
 
 
 @log_function_call
@@ -594,3 +594,22 @@ def screenshot(screenshot_path: str = "cache") -> bool:
     except Exception:
         logger.error("screenshot failed.")
         return False
+
+
+class KeyBoard:
+    """键盘事件"""
+
+    def keyboard_input(key: str):
+        import ctypes
+        ctypes.windll.user32.keybd_event(key, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(key, 0, 0x0002, 0)
+
+    @classmethod
+    def enter(self):
+        """键入`回车键`"""
+        self.keyboard_input(0x0D)
+
+    @classmethod
+    def esc(self):
+        """键入`ESC键`"""
+        self.keyboard_input(0x1B)

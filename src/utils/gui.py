@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# gui.py
-
 import sys
 import time
 from contextlib import suppress
@@ -20,6 +16,7 @@ from .config import config, is_Chinese_Path
 from .decorator import log_function_call, run_in_thread
 from .event import event_thread, event_xuanshang_enable
 from .log import log_clean_up, logger
+from .myschedule import global_scheduler
 from .mysignal import global_ms as ms
 from .mythread import WorkThread
 from .restart import Restart
@@ -88,10 +85,7 @@ class MainWindow(QMainWindow):
             key.setCurrentText(config.config_user.model_dump().get(value))
         _status = config.config_user.model_dump().get("remember_last_choice")
         logger.info(f"_status{_status}")
-        if _status == -1:
-            _flag_check = False
-        else:
-            _flag_check = True
+        _flag_check = _status != -1
         self.ui.setting_remember_last_choice_button.setChecked(_flag_check)
         self.ui.label_GitHub_address.setToolTip("通过浏览器打开")
 
@@ -178,12 +172,14 @@ class MainWindow(QMainWindow):
         Restart().move_screenshot()
         upgrade.check_latest()
         get_update_info()
-        window.pthread_get_game_window_handle()
-        # 悬赏封印
-        if config.config_user.xuanshangfengyin == "关闭":
-            event_xuanshang_enable.clear()
-        else:
-            task_xuanshangfengyin.task_start()
+        global_scheduler.add_job(
+            window.scheduler_get_game_window_handle,
+            "interval", seconds=1,
+            id='scheduler_get_game_window_handle'
+        )
+        task_xuanshangfengyin.task_start()
+        logger.info(global_scheduler.get_jobs())
+        global_scheduler.start()
 
     def qmessagbox_update_func(self, level: str, msg: str) -> None:
         match level:
@@ -312,10 +308,9 @@ class MainWindow(QMainWindow):
     def setting_xuanshangfengyin_comboBox_func(self) -> None:
         """设置-悬赏封印-更改"""
         text = self.ui.setting_xuanshangfengyin_comboBox.currentText()
-        if text == "关闭":
-            logger.ui("成功关闭悬赏封印，重启程序后生效")
         logger.info(f"设置项：悬赏封印已更改为 {text}")
         config.config_user_changed("xuanshangfengyin", text)
+        task_xuanshangfengyin.task_start()
 
     def setting_window_style_comboBox_func(self) -> None:
         """设置-界面风格-更改"""
@@ -584,26 +579,20 @@ class MainWindow(QMainWindow):
         return
 
     def buttonGroup_yuhun_mode_change(self):
-        if self.ui.buttonGroup_yuhun_mode.checkedButton().text() == "组队":
-            _flag = True
-        else:
-            _flag = False
-        self.ui.button_driver_False.setEnabled(_flag)
-        self.ui.button_driver_True.setEnabled(_flag)
-        self.ui.button_passengers_2.setEnabled(_flag)
-        self.ui.button_passengers_3.setEnabled(_flag)
+        flag = self.ui.buttonGroup_yuhun_mode.checkedButton().text() == "组队"
+        self.ui.button_driver_False.setEnabled(flag)
+        self.ui.button_driver_True.setEnabled(flag)
+        self.ui.button_passengers_2.setEnabled(flag)
+        self.ui.button_passengers_3.setEnabled(flag)
 
     def buttonGroup_jiejietupo_switch_change(self):
-        if self.ui.buttonGroup_jiejietupo_switch.checkedButton().text() == "卡级":
-            _flag = True
-        else:
-            _flag = False
+        flag = self.ui.buttonGroup_jiejietupo_switch.checkedButton().text() == "卡级"
         for widget in self.ui.buttonGroup_jiejietupo_current_level.buttons():
-            widget.setEnabled(_flag)
+            widget.setEnabled(flag)
         for widget in self.ui.buttonGroup_jiejietupo_target_level.buttons():
-            widget.setEnabled(_flag)
+            widget.setEnabled(flag)
         for widget in self.ui.buttonGroup_jiejietupo_refresh_rule.buttons():
-            widget.setEnabled(not _flag)
+            widget.setEnabled(not flag)
 
     def tips_yuhun_driver(self):
         if self.ui.buttonGroup_yuhun_driver.checkedButton().text() == "是":
@@ -625,6 +614,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         """关闭程序事件（继承类）"""
+        global_scheduler.shutdown()
         with suppress(Exception):
             logger.info("[EXIT]")
         event.accept()
