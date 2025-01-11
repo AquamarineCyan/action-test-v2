@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "onmyoji-python"
-version = "1.7.13"
+name = "OnmyojiDesktopAssistant"
+version = "2.0.0"
 description = "auto for Onmyoji"
 authors = ["AquamarineCyan <1057424730@qq.com>"]
 readme = "README.md"
-repository = "https://github.com/AquamarineCyan/Onmyoji_Python"
+repository = "https://github.com/AquamarineCyan/action-test-v2"
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
